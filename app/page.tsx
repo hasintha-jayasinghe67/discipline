@@ -1,65 +1,210 @@
+"use client";
 import Image from "next/image";
+import { createClient } from "@supabase/supabase-js";
+import { useState } from "react";
+import Header from "@/components/Header";
+import Student from "@/components/Student";
+import Modal from "@/components/Modal";
 
 export default function Home() {
+  // supabase client init - update keys with production ones before deployment
+  const supabase = createClient(
+    "https://kjpvfhcbnehcmyxzpurk.supabase.co",
+    "sb_publishable_tLKA5vcSiHhwOuALGzFMgg_A1qyLJ3-",
+  );
+
+  const [name, setName] = useState("");
+
+  const [studentName, setStudentName] = useState("");
+  const [Class, setClass] = useState("");
+  const [house, setHouse] = useState("");
+  const [strikes, setStrikes] = useState(0);
+  const [blackmarks, setBlackmarks] = useState(0);
+
+  // Modals
+  const [strikeModalOpen, setStrikeModalOpen] = useState(false);
+  const [blackMarkModalOpen, setBlackmarkModalOpen] = useState(false);
+
+  // strike insert fields
+  const [strikeType, setStrikeType] = useState("grooming");
+
+  // blackmark state
+  const [issuer, setIssuer] = useState("");
+  const [blackmarkReason, setBlackmarkReason] = useState("grooming");
+
+  const fetchStudentData = async () => {
+    const students = await supabase
+      .from("students")
+      .select()
+      .eq("Admission No", Number(name));
+
+    if ((students.data?.length as number) < 1) {
+      setStudentName(
+        "Not found (He lied to you, you're not scary, you're a lolla)",
+      );
+    } else {
+      students.data?.map((s) => {
+        setClass(s.Class);
+        setStudentName(s["Name with Initials"]);
+        setHouse(s["School House"]);
+      });
+
+      const strks = await supabase
+        .from("strikes")
+        .select()
+        .eq("Admission No", Number(name));
+      setStrikes(strks.data?.length as number);
+
+      const bms = await supabase
+        .from("blackmarks")
+        .select()
+        .eq("Admission No", Number(name));
+      setBlackmarks(bms.data?.length as number);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <Header />
+      <div className="grid grid-cols-2 p-3 h-full">
+        <div className="">
+          <input
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+            }}
+            className="p-1 bg-gray-200 text-black"
+          />
+          <button className="bg-green-500 p-1" onClick={fetchStudentData}>
+            Search
+          </button>
+
+          <Student
+            name={studentName}
+            Class={Class}
+            house={house}
+            strikes={strikes}
+            onStrikeClick={() => setStrikeModalOpen(true)}
+            onBlackmarkClick={() => setBlackmarkModalOpen(true)}
+            blackmarks={blackmarks}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="bg-white">
+          <div className="flex justify-around w-full">
+            <h1 className="text-2xl text-black">Punishments ongoing</h1>
+            <button className="bg-green-400 text-white p-1">Add</button>
+          </div>
+        </div>
+      </div>
+      <Modal
+        isOpen={blackMarkModalOpen}
+        onClose={() => {
+          setBlackmarkModalOpen(false);
+        }}
+        title={`Add black mark to student ${name}`}
+      >
+        <h1>Add black mark to student {name}</h1>
+        <h3>Strikes: {strikes}</h3>
+        <div className="flex flex-col">
+          <label htmlFor="cateogory">Reason</label>
+          <select
+            name="cateogory"
+            id=""
+            value={blackmarkReason}
+            onChange={(e) => setBlackmarkReason(e.target.value)}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <option value="grooming">Personal Grooming</option>
+            <option value="repeated-punish">Repeated punishment</option>
+            <option value="bullying">Bullying</option>
+            <option value="late">Getting Late Often</option>
+            <option value="substances">Substances</option>
+            <option value="classfuckup">Class Fuckup</option>
+            <option value="clubbing">Clubbing</option>
+          </select>
+          <div className="">
+            <label htmlFor="issuer">Issued By</label>
+            <input
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              type="text"
+              id="issuer"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
         </div>
-      </main>
-    </div>
+        <div className="flex w-full justify-evenly">
+          <button
+            className="bg-green-500 text-white p-1"
+            onClick={async () => {
+              console.log("entering");
+              console.log(name, blackmarkReason, issuer);
+              await supabase.from("blackmarks").insert({
+                "Admission No": Number(name),
+                Reason: blackmarkReason,
+                issuedBy: issuer,
+              });
+
+              console.log("done");
+
+              setBlackmarkModalOpen(false);
+              fetchStudentData();
+            }}
+          >
+            Save
+          </button>
+          <button
+            className="bg-red-500 text-white p-1"
+            onClick={() => setBlackmarkModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={strikeModalOpen}
+        onClose={() => {
+          setStrikeModalOpen(false);
+        }}
+        title={`Add strike to student ${name}`}
+      >
+        <h1>Add Strike to student {name}</h1>
+        <label htmlFor="cateogory">Category</label>
+        <select
+          name="cateogory"
+          id=""
+          value={strikeType}
+          onChange={(e) => setStrikeType(e.target.value)}
+        >
+          <option value="grooming">Personal Grooming</option>
+          <option value="repeated-punish">Repeated punishment</option>
+          <option value="bullying">Bullying</option>
+          <option value="late">Getting Late Often</option>
+          <option value="substances">Substances</option>
+          <option value="classfuckup">Class Fuckup</option>
+          <option value="clubbing">Clubbing</option>
+        </select>
+        <div className="flex w-full justify-evenly">
+          <button
+            className="bg-green-500 text-white p-1"
+            onClick={async () => {
+              await supabase.from("strikes").insert({
+                "Admission No": Number(name),
+                Category: strikeType,
+              });
+
+              setStrikeModalOpen(false);
+              fetchStudentData();
+            }}
+          >
+            Save
+          </button>
+          <button
+            className="bg-red-500 text-white p-1"
+            onClick={() => setStrikeModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+    </>
   );
 }
