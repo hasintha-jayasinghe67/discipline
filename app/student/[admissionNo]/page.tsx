@@ -157,11 +157,16 @@ export default function StudentDetailPage() {
   };
 
   const handleAddGoldMark = async () => {
-    await supabase.from("goldmarks").insert({
+    const { error } = await supabase.from("goldmarks").insert({
       "Admission No": Number(admissionNo),
       Reason: goldMarkReason,
       issuedBy: issuer,
     });
+    if (error) {
+      console.error("Gold mark insert error:", error);
+      alert("Failed to add gold mark: " + error.message);
+      return;
+    }
     setGoldMarkModalOpen(false);
     fetchData();
   };

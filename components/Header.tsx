@@ -12,6 +12,12 @@ export default () => {
         </div>
         <div className="flex items-center gap-3 sm:gap-5">
           <a
+            href="/lists"
+            className="text-white/70 hover:text-white text-xs sm:text-sm font-medium transition-colors"
+          >
+            Lists
+          </a>
+          <a
             href="/discipline"
             className="text-white/70 hover:text-white text-xs sm:text-sm font-medium transition-colors"
           >

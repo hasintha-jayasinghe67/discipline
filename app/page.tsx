@@ -362,11 +362,16 @@ export default function Home() {
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
-              await supabase.from("goldmarks").insert({
+              const { error } = await supabase.from("goldmarks").insert({
                 "Admission No": Number(name),
                 Reason: goldMarkReason,
                 issuedBy: issuer,
               });
+              if (error) {
+                console.error("Gold mark insert error:", error);
+                alert("Failed to add gold mark: " + error.message);
+                return;
+              }
               setGoldMarkModalOpen(false);
               fetchStudentData();
             }}
