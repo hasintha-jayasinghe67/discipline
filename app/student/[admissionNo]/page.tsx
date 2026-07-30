@@ -37,6 +37,14 @@ interface Goldmark {
   created_at?: string;
 }
 
+interface Comment {
+  id: number;
+  "Admission No": number;
+  commentor: string;
+  commentText: string;
+  created_at?: string;
+}
+
 export default function StudentDetailPage() {
   const { authenticated } = useAuth();
   const router = useRouter();
@@ -56,6 +64,7 @@ export default function StudentDetailPage() {
   const [strikes, setStrikes] = useState<Strike[]>([]);
   const [blackmarks, setBlackmarks] = useState<Blackmark[]>([]);
   const [goldmarks, setGoldmarks] = useState<Goldmark[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -64,6 +73,7 @@ export default function StudentDetailPage() {
   const [blackMarkModalOpen, setBlackmarkModalOpen] = useState(false);
   const [goldMarkModalOpen, setGoldMarkModalOpen] = useState(false);
   const [punishmentModalOpen, setPunishmentModalOpen] = useState(false);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
 
   // Form field states
   const [strikeType, setStrikeType] = useState("grooming");
@@ -71,6 +81,8 @@ export default function StudentDetailPage() {
   const [blackmarkReason, setBlackmarkReason] = useState("grooming");
   const [goldMarkReason, setGoldMarkReason] = useState("good-behavior");
   const [punishmentReason, setPunishmentReason] = useState("");
+  const [commentor, setCommentor] = useState("");
+  const [commentText, setCommentText] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -111,6 +123,13 @@ export default function StudentDetailPage() {
       .eq("Admission No", Number(admissionNo));
 
     setGoldmarks(goldmarksData || []);
+
+    const { data: commentsData } = await supabase
+      .from("comments")
+      .select()
+      .eq("Admission No", Number(admissionNo));
+
+    setComments(commentsData || []);
     setLoading(false);
   };
 
@@ -150,6 +169,17 @@ export default function StudentDetailPage() {
   const handleAddPunishment = async () => {
     // Placeholder for punishment logic - add to a punishments table when ready
     setPunishmentModalOpen(false);
+  };
+
+  const handleAddComment = async () => {
+    await supabase.from("comments").insert({
+      "Admission No": Number(admissionNo),
+      commentor: commentor,
+      commentText: commentText,
+    });
+    setCommentModalOpen(false);
+    setCommentText("");
+    fetchData();
   };
 
   if (!authenticated) return null;
@@ -310,6 +340,17 @@ export default function StudentDetailPage() {
                   Black Mark
                 </span>
               </button>
+              <button
+                onClick={() => { setCommentModalOpen(true); setCommentor(""); setCommentText(""); }}
+                className="sm:flex-1 hover:cursor-pointer bg-violet-500 hover:bg-violet-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
+              >
+                <span className="flex items-center justify-center gap-1 sm:gap-1.5">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Comment
+                </span>
+              </button>
             </div>
           </div>
 
@@ -428,6 +469,53 @@ export default function StudentDetailPage() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Comments Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              Comments ({comments.length})
+            </h2>
+            {comments.length === 0 ? (
+              <p className="text-gray-400 text-sm py-4 text-center">
+                No comments yet
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {comments.map((comment, i) => (
+                  <div
+                    key={comment.id || i}
+                    className="bg-violet-50 border border-violet-100 rounded-lg px-4 py-3"
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-violet-200 rounded-full flex items-center justify-center text-violet-700 text-xs font-bold">
+                          {comment.commentor?.charAt(0)?.toUpperCase() || "?"}
+                        </div>
+                        <span className="text-sm font-medium text-violet-900">
+                          {comment.commentor}
+                        </span>
+                      </div>
+                      {comment.created_at && (
+                        <span className="text-xs text-violet-500">
+                          {new Date(comment.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-violet-800 ml-8">
+                      {comment.commentText}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -634,6 +722,60 @@ export default function StudentDetailPage() {
           <button
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setPunishmentModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Comment Modal */}
+      <Modal
+        isOpen={commentModalOpen}
+        onClose={() => setCommentModalOpen(false)}
+        title={`Add comment for ${studentName}`}
+      >
+        <div className="text-sm text-gray-500 mb-3">
+          Adding comment for{" "}
+          <span className="font-semibold text-gray-700">{studentName}</span>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label htmlFor="detail-commentor" className="block text-sm font-medium text-gray-700 mb-1">
+              Commentor
+            </label>
+            <input
+              value={commentor}
+              onChange={(e) => setCommentor(e.target.value)}
+              type="text"
+              id="detail-commentor"
+              placeholder="Your name"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label htmlFor="detail-comment-text" className="block text-sm font-medium text-gray-700 mb-1">
+              Comment
+            </label>
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              id="detail-comment-text"
+              placeholder="Write your comment..."
+              rows={3}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+            />
+          </div>
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            onClick={handleAddComment}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            onClick={() => setCommentModalOpen(false)}
           >
             Discard
           </button>

@@ -8,6 +8,7 @@ export default ({
   onStrikeClick,
   onBlackmarkClick,
   onGoldMarkClick,
+  onCommentClick,
   blackmarks,
   goldmarks,
   admission,
@@ -21,6 +22,7 @@ export default ({
   onStrikeClick: () => void;
   onBlackmarkClick: () => void;
   onGoldMarkClick: () => void;
+  onCommentClick: () => void;
   admission: string;
 }) => {
   return (
@@ -133,7 +135,10 @@ export default ({
             <span>Gold Mark</span>
           </span>
         </button>
-        <button className="sm:flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm">
+        <button
+          onClick={onCommentClick}
+          className="sm:flex-1 hover:cursor-pointer bg-violet-500 hover:bg-violet-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm"
+        >
           <span className="flex items-center justify-center gap-1 sm:gap-1.5">
             <svg
               className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
@@ -145,10 +150,10 @@ export default ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
-            <span>Punishment</span>
+            <span>Comment</span>
           </span>
         </button>
         <button

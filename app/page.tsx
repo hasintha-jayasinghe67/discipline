@@ -30,6 +30,7 @@ export default function Home() {
   const [strikeModalOpen, setStrikeModalOpen] = useState(false);
   const [blackMarkModalOpen, setBlackmarkModalOpen] = useState(false);
   const [goldMarkModalOpen, setGoldMarkModalOpen] = useState(false);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
 
   // strike insert fields
   const [strikeType, setStrikeType] = useState("grooming");
@@ -38,6 +39,10 @@ export default function Home() {
   const [issuer, setIssuer] = useState("");
   const [blackmarkReason, setBlackmarkReason] = useState("grooming");
   const [goldMarkReason, setGoldMarkReason] = useState("good-behavior");
+
+  // Comment state
+  const [commentor, setCommentor] = useState("");
+  const [commentText, setCommentText] = useState("");
 
   const fetchStudentData = async () => {
     const students = await supabase
@@ -125,6 +130,7 @@ export default function Home() {
               onStrikeClick={() => setStrikeModalOpen(true)}
               onBlackmarkClick={() => setBlackmarkModalOpen(true)}
               onGoldMarkClick={() => setGoldMarkModalOpen(true)}
+              onCommentClick={() => { setCommentModalOpen(true); setCommentor(issuer); setCommentText(""); }}
               blackmarks={blackmarks}
             />
           ) : (
@@ -370,6 +376,74 @@ export default function Home() {
           <button
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
             onClick={() => setGoldMarkModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Comment Modal */}
+      <Modal
+        isOpen={commentModalOpen}
+        onClose={() => setCommentModalOpen(false)}
+        title={`Add comment for student ${name}`}
+      >
+        <div className="text-sm text-gray-500 mb-3">
+          Adding comment for student{" "}
+          <span className="font-semibold text-gray-700">{name}</span>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label
+              htmlFor="commentor"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Commentor
+            </label>
+            <input
+              value={commentor}
+              onChange={(e) => setCommentor(e.target.value)}
+              type="text"
+              id="commentor"
+              placeholder="Your name"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="comment-text"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Comment
+            </label>
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              id="comment-text"
+              placeholder="Write your comment..."
+              rows={3}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+            />
+          </div>
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
+            onClick={async () => {
+              await supabase.from("comments").insert({
+                "Admission No": Number(name),
+                commentor: commentor,
+                commentText: commentText,
+              });
+              setCommentModalOpen(false);
+              setCommentText("");
+            }}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
+            onClick={() => setCommentModalOpen(false)}
           >
             Discard
           </button>
