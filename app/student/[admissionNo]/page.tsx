@@ -14,6 +14,9 @@ const categoryLabels: Record<string, string> = {
   substances: "Substances",
   classfuckup: "Classroom Behavior",
   clubbing: "Clubbing",
+  "good-behavior": "Good Behavior",
+  "giving-back": "Giving Back to College",
+  "excellent-academics": "Excellent Academics",
 };
 
 interface Strike {
@@ -22,6 +25,12 @@ interface Strike {
 }
 
 interface Blackmark {
+  Reason: string;
+  issuedBy: string;
+  created_at?: string;
+}
+
+interface Goldmark {
   Reason: string;
   issuedBy: string;
   created_at?: string;
@@ -36,18 +45,21 @@ export default function StudentDetailPage() {
   const [house, setHouse] = useState("");
   const [strikes, setStrikes] = useState<Strike[]>([]);
   const [blackmarks, setBlackmarks] = useState<Blackmark[]>([]);
+  const [goldmarks, setGoldmarks] = useState<Goldmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   // Modal states
   const [strikeModalOpen, setStrikeModalOpen] = useState(false);
   const [blackMarkModalOpen, setBlackmarkModalOpen] = useState(false);
+  const [goldMarkModalOpen, setGoldMarkModalOpen] = useState(false);
   const [punishmentModalOpen, setPunishmentModalOpen] = useState(false);
 
   // Form field states
   const [strikeType, setStrikeType] = useState("grooming");
   const [issuer, setIssuer] = useState("");
   const [blackmarkReason, setBlackmarkReason] = useState("grooming");
+  const [goldMarkReason, setGoldMarkReason] = useState("good-behavior");
   const [punishmentReason, setPunishmentReason] = useState("");
 
   const fetchData = async () => {
@@ -82,6 +94,13 @@ export default function StudentDetailPage() {
       .eq("Admission No", Number(admissionNo));
 
     setBlackmarks(blackmarksData || []);
+
+    const { data: goldmarksData } = await supabase
+      .from("goldmarks")
+      .select()
+      .eq("Admission No", Number(admissionNo));
+
+    setGoldmarks(goldmarksData || []);
     setLoading(false);
   };
 
@@ -105,6 +124,16 @@ export default function StudentDetailPage() {
       issuedBy: issuer,
     });
     setBlackmarkModalOpen(false);
+    fetchData();
+  };
+
+  const handleAddGoldMark = async () => {
+    await supabase.from("goldmarks").insert({
+      "Admission No": Number(admissionNo),
+      Reason: goldMarkReason,
+      issuedBy: issuer,
+    });
+    setGoldMarkModalOpen(false);
     fetchData();
   };
 
@@ -207,6 +236,14 @@ export default function StudentDetailPage() {
                   Total Blackmarks
                 </div>
               </div>
+              <div className="flex-1 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 text-center">
+                <div className="text-2xl font-bold text-emerald-600">
+                  {goldmarks.length}
+                </div>
+                <div className="text-sm text-emerald-700 font-medium">
+                  Total Gold Marks
+                </div>
+              </div>
             </div>
 
             {/* Action buttons */}
@@ -220,6 +257,17 @@ export default function StudentDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Add Strike
+                </span>
+              </button>
+              <button
+                onClick={() => setGoldMarkModalOpen(true)}
+                className="flex-1 hover:cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6m0 2a2 2 0 100-4 2 2 0 000 4zm-6 8a6 6 0 0112 0" />
+                  </svg>
+                  Add Gold Mark
                 </span>
               </button>
               <button
@@ -247,7 +295,7 @@ export default function StudentDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Strikes List */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -318,6 +366,42 @@ export default function StudentDetailPage() {
                           </div>
                           <div className="text-xs text-rose-600">
                             Issued by: {bm.issuedBy}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Gold Marks List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
+                Gold Marks
+              </h2>
+              {goldmarks.length === 0 ? (
+                <p className="text-gray-400 text-sm py-4 text-center">
+                  No gold marks recorded
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {goldmarks.map((gm, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col gap-1 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center text-emerald-700 text-xs font-bold shrink-0">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-emerald-900">
+                            {categoryLabels[gm.Reason] || gm.Reason}
+                          </div>
+                          <div className="text-xs text-emerald-600">
+                            Issued by: {gm.issuedBy}
                           </div>
                         </div>
                       </div>
@@ -433,6 +517,66 @@ export default function StudentDetailPage() {
           <button
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setBlackmarkModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Gold Mark Modal */}
+      <Modal
+        isOpen={goldMarkModalOpen}
+        onClose={() => setGoldMarkModalOpen(false)}
+        title={`Add gold mark to student ${studentName}`}
+      >
+        <div className="text-sm text-gray-500 mb-3">
+          Adding gold mark to{" "}
+          <span className="font-semibold text-gray-700">{studentName}</span>
+        </div>
+        <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
+          <span className="text-sm text-emerald-700 font-medium">Current Gold Marks</span>
+          <span className="text-lg font-bold text-emerald-600">{goldmarks.length}</span>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label htmlFor="detail-gm-reason" className="block text-sm font-medium text-gray-700 mb-1">
+              Reason
+            </label>
+            <select
+              id="detail-gm-reason"
+              value={goldMarkReason}
+              onChange={(e) => setGoldMarkReason(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+            >
+              <option value="good-behavior">Good Behavior</option>
+              <option value="giving-back">Giving Back to College</option>
+              <option value="excellent-academics">Excellent Academics</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="detail-gm-issuer" className="block text-sm font-medium text-gray-700 mb-1">
+              Issued By
+            </label>
+            <input
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              type="text"
+              id="detail-gm-issuer"
+              placeholder="Enter your name"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            onClick={handleAddGoldMark}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            onClick={() => setGoldMarkModalOpen(false)}
           >
             Discard
           </button>

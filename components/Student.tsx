@@ -7,7 +7,9 @@ export default ({
   strikes,
   onStrikeClick,
   onBlackmarkClick,
+  onGoldMarkClick,
   blackmarks,
+  goldmarks,
   admission,
 }: {
   name: string;
@@ -15,8 +17,10 @@ export default ({
   house: string;
   strikes: number | string;
   blackmarks: number | string;
+  goldmarks: number | string;
   onStrikeClick: () => void;
   onBlackmarkClick: () => void;
+  onGoldMarkClick: () => void;
   admission: string;
 }) => {
   return (
@@ -76,6 +80,14 @@ export default ({
               {blackmarks}
             </span>
           </div>
+          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+            <span className="text-sm text-emerald-700 font-medium">
+              Gold Marks
+            </span>
+            <span className="text-lg font-bold text-emerald-600">
+              {goldmarks}
+            </span>
+          </div>
         </div>
       </div>
       <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
@@ -98,6 +110,27 @@ export default ({
               />
             </svg>
             Add Strike
+          </span>
+        </button>
+        <button
+          onClick={onGoldMarkClick}
+          className="flex-1 hover:cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm"
+        >
+          <span className="flex items-center justify-center gap-1.5">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v13m0-13V6m0 2a2 2 0 100-4 2 2 0 000 4zm-6 8a6 6 0 0112 0"
+              />
+            </svg>
+            Add Gold Mark
           </span>
         </button>
         <button className="flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm">

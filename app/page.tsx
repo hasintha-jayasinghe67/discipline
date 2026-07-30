@@ -13,17 +13,20 @@ export default function Home() {
   const [house, setHouse] = useState("");
   const [strikes, setStrikes] = useState(0);
   const [blackmarks, setBlackmarks] = useState(0);
+  const [goldmarks, setGoldmarks] = useState(0);
 
   // Modals
   const [strikeModalOpen, setStrikeModalOpen] = useState(false);
   const [blackMarkModalOpen, setBlackmarkModalOpen] = useState(false);
+  const [goldMarkModalOpen, setGoldMarkModalOpen] = useState(false);
 
   // strike insert fields
   const [strikeType, setStrikeType] = useState("grooming");
 
-  // blackmark state
+  // blackmark & goldmark state
   const [issuer, setIssuer] = useState("");
   const [blackmarkReason, setBlackmarkReason] = useState("grooming");
+  const [goldMarkReason, setGoldMarkReason] = useState("good-behavior");
 
   const fetchStudentData = async () => {
     const students = await supabase
@@ -53,6 +56,12 @@ export default function Home() {
         .select()
         .eq("Admission No", Number(name));
       setBlackmarks(bms.data?.length as number);
+
+      const gms = await supabase
+        .from("goldmarks")
+        .select()
+        .eq("Admission No", Number(name));
+      setGoldmarks(gms.data?.length as number);
     }
   };
 
@@ -99,8 +108,10 @@ export default function Home() {
               Class={Class}
               house={house}
               strikes={strikes}
+              goldmarks={goldmarks}
               onStrikeClick={() => setStrikeModalOpen(true)}
               onBlackmarkClick={() => setBlackmarkModalOpen(true)}
+              onGoldMarkClick={() => setGoldMarkModalOpen(true)}
               blackmarks={blackmarks}
             />
           ) : (
@@ -270,6 +281,82 @@ export default function Home() {
           <button
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
             onClick={() => setStrikeModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Gold Mark Modal */}
+      <Modal
+        isOpen={goldMarkModalOpen}
+        onClose={() => setGoldMarkModalOpen(false)}
+        title={`Add gold mark to student ${name}`}
+      >
+        <div className="text-sm text-gray-500 mb-3">
+          Adding gold mark to student{" "}
+          <span className="font-semibold text-gray-700">{name}</span>
+        </div>
+        <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
+          <span className="text-sm text-emerald-700 font-medium">
+            Current Gold Marks
+          </span>
+          <span className="text-lg font-bold text-emerald-600">{goldmarks}</span>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label
+              htmlFor="goldmark-reason"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Reason
+            </label>
+            <select
+              id="goldmark-reason"
+              value={goldMarkReason}
+              onChange={(e) => setGoldMarkReason(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+            >
+              <option value="good-behavior">Good Behavior</option>
+              <option value="giving-back">Giving Back to College</option>
+              <option value="excellent-academics">Excellent Academics</option>
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="goldmark-issuer"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Issued By
+            </label>
+            <input
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              type="text"
+              id="goldmark-issuer"
+              placeholder="Enter your name"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
+            onClick={async () => {
+              await supabase.from("goldmarks").insert({
+                "Admission No": Number(name),
+                Reason: goldMarkReason,
+                issuedBy: issuer,
+              });
+              setGoldMarkModalOpen(false);
+              fetchStudentData();
+            }}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
+            onClick={() => setGoldMarkModalOpen(false)}
           >
             Discard
           </button>
