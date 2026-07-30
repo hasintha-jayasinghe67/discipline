@@ -10,8 +10,19 @@ export default () => {
           </div>
           <h1 className="text-white text-xl sm:text-2xl font-bold tracking-tight truncate">Discipline</h1>
         </div>
-        <div className="text-white/60 sm:text-white/70 text-xs sm:text-sm shrink-0">
-          <span className="hidden sm:inline">Prefects </span>Dashboard
+        <div className="flex items-center gap-3 sm:gap-5">
+          <a
+            href="/discipline"
+            className="text-white/70 hover:text-white text-xs sm:text-sm font-medium transition-colors"
+          >
+            Records
+          </a>
+          <a
+            href="/"
+            className="text-white/60 hover:text-white sm:text-white/70 text-xs sm:text-sm shrink-0 transition-colors"
+          >
+            <span className="hidden sm:inline">Prefects </span>Dashboard
+          </a>
         </div>
       </div>
     </div>

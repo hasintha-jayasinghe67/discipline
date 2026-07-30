@@ -1,12 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Student from "@/components/Student";
 import Modal from "@/components/Modal";
 
 export default function Home() {
+  const { authenticated } = useAuth();
+  const router = useRouter();
+
   const [name, setName] = useState("");
+
+  useEffect(() => {
+    if (!authenticated) {
+      router.push("/authenticate");
+    }
+  }, [authenticated, router]);
 
   const [studentName, setStudentName] = useState("");
   const [Class, setClass] = useState("");
@@ -64,6 +75,8 @@ export default function Home() {
       setGoldmarks(gms.data?.length as number);
     }
   };
+
+  if (!authenticated) return null;
 
   return (
     <>

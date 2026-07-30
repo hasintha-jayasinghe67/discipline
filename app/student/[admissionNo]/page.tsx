@@ -1,8 +1,9 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 
@@ -37,10 +38,19 @@ interface Goldmark {
 }
 
 export default function StudentDetailPage() {
+  const { authenticated } = useAuth();
+  const router = useRouter();
   const params = useParams();
   const admissionNo = params.admissionNo as string;
 
   const [studentName, setStudentName] = useState("");
+
+  useEffect(() => {
+    if (!authenticated) {
+      router.push("/authenticate");
+    }
+  }, [authenticated, router]);
+
   const [Class, setClass] = useState("");
   const [house, setHouse] = useState("");
   const [strikes, setStrikes] = useState<Strike[]>([]);
@@ -141,6 +151,8 @@ export default function StudentDetailPage() {
     // Placeholder for punishment logic - add to a punishments table when ready
     setPunishmentModalOpen(false);
   };
+
+  if (!authenticated) return null;
 
   if (loading) {
     return (
