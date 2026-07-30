@@ -34,7 +34,7 @@ export default function Modal({
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="p-0 rounded-xl shadow-2xl max-w-md w-full bg-white"
+      className="p-0 rounded-xl shadow-2xl max-w-md w-[calc(100%-2rem)] sm:w-full bg-white"
     >
       <div className="p-6 flex flex-col gap-4">
         <div className="flex justify-between items-center border-b pb-2">

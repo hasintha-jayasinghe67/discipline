@@ -24,13 +24,13 @@ export default ({
   admission: string;
 }) => {
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 m-2">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4 sm:p-5 m-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">
           <a href={`/student/${admission}`}>
-            <h2 className="text-gray-900 text-lg font-semibold">{name}</h2>
+            <h2 className="text-gray-900 text-base sm:text-lg font-semibold">{name}</h2>
           </a>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500">
             <span className="inline-flex items-center gap-1">
               <svg
                 className="w-4 h-4"
@@ -67,37 +67,37 @@ export default ({
         </div>
         <div className="flex flex-col gap-2 justify-center">
           <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            <span className="text-sm text-amber-700 font-medium">
-              Current Strikes
+            <span className="text-xs sm:text-sm text-amber-700 font-medium">
+              Strikes
             </span>
-            <span className="text-lg font-bold text-amber-600">{strikes}</span>
+            <span className="text-base sm:text-lg font-bold text-amber-600">{strikes}</span>
           </div>
           <div className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
-            <span className="text-sm text-rose-700 font-medium">
-              Current Blackmarks
+            <span className="text-xs sm:text-sm text-rose-700 font-medium">
+              Blackmarks
             </span>
-            <span className="text-lg font-bold text-rose-600">
+            <span className="text-base sm:text-lg font-bold text-rose-600">
               {blackmarks}
             </span>
           </div>
           <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-            <span className="text-sm text-emerald-700 font-medium">
+            <span className="text-xs sm:text-sm text-emerald-700 font-medium">
               Gold Marks
             </span>
-            <span className="text-lg font-bold text-emerald-600">
+            <span className="text-base sm:text-lg font-bold text-emerald-600">
               {goldmarks}
             </span>
           </div>
         </div>
       </div>
-      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+      <div className="grid grid-cols-2 sm:flex sm:gap-2 gap-2 mt-4 pt-4 border-t border-gray-100">
         <button
           onClick={onStrikeClick}
-          className="flex-1 hover:cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm"
+          className="sm:flex-1 hover:cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm"
         >
-          <span className="flex items-center justify-center gap-1.5">
+          <span className="flex items-center justify-center gap-1 sm:gap-1.5">
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -109,16 +109,16 @@ export default ({
                 d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Add Strike
+            <span>Add Strike</span>
           </span>
         </button>
         <button
           onClick={onGoldMarkClick}
-          className="flex-1 hover:cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm"
+          className="sm:flex-1 hover:cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm"
         >
-          <span className="flex items-center justify-center gap-1.5">
+          <span className="flex items-center justify-center gap-1 sm:gap-1.5">
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -130,13 +130,13 @@ export default ({
                 d="M12 8v13m0-13V6m0 2a2 2 0 100-4 2 2 0 000 4zm-6 8a6 6 0 0112 0"
               />
             </svg>
-            Add Gold Mark
+            <span>Gold Mark</span>
           </span>
         </button>
-        <button className="flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm">
-          <span className="flex items-center justify-center gap-1.5">
+        <button className="sm:flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm">
+          <span className="flex items-center justify-center gap-1 sm:gap-1.5">
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -148,16 +148,16 @@ export default ({
                 d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
               />
             </svg>
-            Add to Punishment
+            <span>Punishment</span>
           </span>
         </button>
         <button
           onClick={onBlackmarkClick}
-          className="flex-1 hover:cursor-pointer bg-rose-500 hover:bg-rose-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm"
+          className="sm:flex-1 hover:cursor-pointer bg-rose-500 hover:bg-rose-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm"
         >
-          <span className="flex items-center justify-center gap-1.5">
+          <span className="flex items-center justify-center gap-1 sm:gap-1.5">
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -169,7 +169,7 @@ export default ({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            Add Black Mark
+            <span>Black Mark</span>
           </span>
         </button>
       </div>

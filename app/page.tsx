@@ -68,9 +68,9 @@ export default function Home() {
   return (
     <>
       <Header />
-      <div className="p-6 bg-gray-50">
+      <div className="p-4 sm:p-6 bg-gray-50">
         <div className="max-w-2xl mx-auto flex flex-col gap-3">
-          <div className="flex items-center gap-2 bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white rounded-xl shadow-sm border border-gray-100 p-3">
             <div className="relative flex-1">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"

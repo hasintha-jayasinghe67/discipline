@@ -32,13 +32,15 @@ button, input, select {
   transition: all 0.2s ease;
 }
 
-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+@media (hover: hover) {
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 
-button:active {
-  transform: translateY(0);
+  button:active {
+    transform: translateY(0);
+  }
 }
 
 input:focus, select:focus {
