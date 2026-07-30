@@ -1,0 +1,482 @@
+"use client";
+
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Header from "@/components/Header";
+import Modal from "@/components/Modal";
+
+const categoryLabels: Record<string, string> = {
+  grooming: "Personal Grooming",
+  "repeated-punish": "Repeated Punishments",
+  bullying: "Bullying",
+  late: "Getting Late Often",
+  substances: "Substances",
+  classfuckup: "Classroom Behavior",
+  clubbing: "Clubbing",
+};
+
+interface Strike {
+  Category: string;
+  created_at?: string;
+}
+
+interface Blackmark {
+  Reason: string;
+  issuedBy: string;
+  created_at?: string;
+}
+
+export default function StudentDetailPage() {
+  const params = useParams();
+  const admissionNo = params.admissionNo as string;
+
+  const [studentName, setStudentName] = useState("");
+  const [Class, setClass] = useState("");
+  const [house, setHouse] = useState("");
+  const [strikes, setStrikes] = useState<Strike[]>([]);
+  const [blackmarks, setBlackmarks] = useState<Blackmark[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  // Modal states
+  const [strikeModalOpen, setStrikeModalOpen] = useState(false);
+  const [blackMarkModalOpen, setBlackmarkModalOpen] = useState(false);
+  const [punishmentModalOpen, setPunishmentModalOpen] = useState(false);
+
+  // Form field states
+  const [strikeType, setStrikeType] = useState("grooming");
+  const [issuer, setIssuer] = useState("");
+  const [blackmarkReason, setBlackmarkReason] = useState("grooming");
+  const [punishmentReason, setPunishmentReason] = useState("");
+
+  const fetchData = async () => {
+    setLoading(true);
+
+    const { data: students } = await supabase
+      .from("students")
+      .select()
+      .eq("Admission No", Number(admissionNo));
+
+    if (!students || students.length < 1) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
+
+    const s = students[0];
+    setStudentName(s["Name with Initials"]);
+    setClass(s.Class);
+    setHouse(s["School House"]);
+
+    const { data: strikesData } = await supabase
+      .from("strikes")
+      .select()
+      .eq("Admission No", Number(admissionNo));
+
+    setStrikes(strikesData || []);
+
+    const { data: blackmarksData } = await supabase
+      .from("blackmarks")
+      .select()
+      .eq("Admission No", Number(admissionNo));
+
+    setBlackmarks(blackmarksData || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (admissionNo) fetchData();
+  }, [admissionNo]);
+
+  const handleAddStrike = async () => {
+    await supabase.from("strikes").insert({
+      "Admission No": Number(admissionNo),
+      Category: strikeType,
+    });
+    setStrikeModalOpen(false);
+    fetchData();
+  };
+
+  const handleAddBlackmark = async () => {
+    await supabase.from("blackmarks").insert({
+      "Admission No": Number(admissionNo),
+      Reason: blackmarkReason,
+      issuedBy: issuer,
+    });
+    setBlackmarkModalOpen(false);
+    fetchData();
+  };
+
+  const handleAddPunishment = async () => {
+    // Placeholder for punishment logic - add to a punishments table when ready
+    setPunishmentModalOpen(false);
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+          <div className="text-gray-400 text-lg animate-pulse">
+            Loading student data...
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <>
+        <Header />
+        <div className="p-6 bg-gray-50 min-h-screen">
+          <div className="max-w-2xl mx-auto mt-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="text-6xl mb-4">🔍</div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              Student Not Found
+            </h2>
+            <p className="text-gray-500">
+              No student found with Admission No:{" "}
+              <span className="font-semibold text-gray-700">{admissionNo}</span>
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="max-w-3xl mx-auto flex flex-col gap-6">
+          {/* Back link */}
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 transition-colors w-fit"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to search
+          </a>
+          {/* Student Info Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                {studentName.charAt(0)}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {studentName}
+                </h1>
+                <p className="text-gray-500 flex items-center gap-3 mt-1">
+                  <span>Admission No: {admissionNo}</span>
+                  <span className="text-gray-300">|</span>
+                  <span>{Class}</span>
+                  <span className="text-gray-300">|</span>
+                  <span>{house}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4 pt-4 border-t border-gray-100">
+              <div className="flex-1 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-center">
+                <div className="text-2xl font-bold text-amber-600">
+                  {strikes.length}
+                </div>
+                <div className="text-sm text-amber-700 font-medium">
+                  Total Strikes
+                </div>
+              </div>
+              <div className="flex-1 bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 text-center">
+                <div className="text-2xl font-bold text-rose-600">
+                  {blackmarks.length}
+                </div>
+                <div className="text-sm text-rose-700 font-medium">
+                  Total Blackmarks
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+              <button
+                onClick={() => setStrikeModalOpen(true)}
+                className="flex-1 hover:cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Add Strike
+                </span>
+              </button>
+              <button
+                onClick={() => setPunishmentModalOpen(true)}
+                className="flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Add to Punishment
+                </span>
+              </button>
+              <button
+                onClick={() => setBlackmarkModalOpen(true)}
+                className="flex-1 hover:cursor-pointer bg-rose-500 hover:bg-rose-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              >
+                <span className="flex items-center justify-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Add Black Mark
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Strikes List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+                Strikes
+              </h2>
+              {strikes.length === 0 ? (
+                <p className="text-gray-400 text-sm py-4 text-center">
+                  No strikes recorded
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {strikes.map((strike, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5"
+                    >
+                      <span className="w-6 h-6 bg-amber-200 rounded-full flex items-center justify-center text-amber-700 text-xs font-bold">
+                        {i + 1}
+                      </span>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-amber-900">
+                          {categoryLabels[strike.Category] || strike.Category}
+                        </div>
+                        {strike.created_at && (
+                          <div className="text-xs text-amber-600">
+                            {new Date(strike.created_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Blackmarks List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-rose-400 rounded-full"></span>
+                Blackmarks
+              </h2>
+              {blackmarks.length === 0 ? (
+                <p className="text-gray-400 text-sm py-4 text-center">
+                  No blackmarks recorded
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {blackmarks.map((bm, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col gap-1 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 bg-rose-200 rounded-full flex items-center justify-center text-rose-700 text-xs font-bold shrink-0">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-rose-900">
+                            {categoryLabels[bm.Reason] || bm.Reason}
+                          </div>
+                          <div className="text-xs text-rose-600">
+                            Issued by: {bm.issuedBy}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Strike Modal */}
+      <Modal
+        isOpen={strikeModalOpen}
+        onClose={() => setStrikeModalOpen(false)}
+        title={`Add strike to student ${studentName}`}
+      >
+        <div className="text-sm text-gray-500 mb-4">
+          Adding strike to{" "}
+          <span className="font-semibold text-gray-700">{studentName}</span>
+        </div>
+        <div>
+          <label htmlFor="detail-strike-category" className="block text-sm font-medium text-gray-700 mb-1">
+            Category
+          </label>
+          <select
+            id="detail-strike-category"
+            value={strikeType}
+            onChange={(e) => setStrikeType(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+          >
+            <option value="grooming">Personal Grooming</option>
+            <option value="repeated-punish">Repeated punishment</option>
+            <option value="bullying">Bullying</option>
+            <option value="late">Getting Late Often</option>
+            <option value="substances">Substances</option>
+            <option value="classfuckup">Class Fuckup</option>
+            <option value="clubbing">Clubbing</option>
+          </select>
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            onClick={handleAddStrike}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            onClick={() => setStrikeModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Blackmark Modal */}
+      <Modal
+        isOpen={blackMarkModalOpen}
+        onClose={() => setBlackmarkModalOpen(false)}
+        title={`Add black mark to student ${studentName}`}
+      >
+        <div className="text-sm text-gray-500 mb-3">
+          Adding black mark to{" "}
+          <span className="font-semibold text-gray-700">{studentName}</span>
+        </div>
+        <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-4">
+          <span className="text-sm text-rose-700 font-medium">Current Strikes</span>
+          <span className="text-lg font-bold text-rose-600">{strikes.length}</span>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label htmlFor="detail-bm-reason" className="block text-sm font-medium text-gray-700 mb-1">
+              Reason
+            </label>
+            <select
+              id="detail-bm-reason"
+              value={blackmarkReason}
+              onChange={(e) => setBlackmarkReason(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+            >
+              <option value="grooming">Personal Grooming</option>
+              <option value="repeated-punish">Repeated punishment</option>
+              <option value="bullying">Bullying</option>
+              <option value="late">Getting Late Often</option>
+              <option value="substances">Substances</option>
+              <option value="classfuckup">Class Fuckup</option>
+              <option value="clubbing">Clubbing</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="detail-issuer" className="block text-sm font-medium text-gray-700 mb-1">
+              Issued By
+            </label>
+            <input
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              type="text"
+              id="detail-issuer"
+              placeholder="Enter your name"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            onClick={handleAddBlackmark}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            onClick={() => setBlackmarkModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+
+      {/* Punishment Modal */}
+      <Modal
+        isOpen={punishmentModalOpen}
+        onClose={() => setPunishmentModalOpen(false)}
+        title={`Add to punishment - ${studentName}`}
+      >
+        <div className="text-sm text-gray-500 mb-4">
+          Assigning punishment to{" "}
+          <span className="font-semibold text-gray-700">{studentName}</span>
+        </div>
+        <div>
+          <label htmlFor="detail-punishment-reason" className="block text-sm font-medium text-gray-700 mb-1">
+            Punishment Reason
+          </label>
+          <textarea
+            id="detail-punishment-reason"
+            value={punishmentReason}
+            onChange={(e) => setPunishmentReason(e.target.value)}
+            placeholder="Describe the punishment..."
+            rows={3}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+          />
+        </div>
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+          <button
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            onClick={handleAddPunishment}
+          >
+            Save
+          </button>
+          <button
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            onClick={() => setPunishmentModalOpen(false)}
+          >
+            Discard
+          </button>
+        </div>
+      </Modal>
+    </>
+  );
+}

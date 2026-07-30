@@ -34,19 +34,21 @@ export default function Modal({
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="backdrop:bg-black/50 p-6 rounded-lg shadow-xl max-w-md w-full bg-white open:flex open:flex-col gap-4 animate-in fade-in zoom-in-95 duration-200"
+      className="p-0 rounded-xl shadow-2xl max-w-md w-full bg-white"
     >
-      <div className="flex justify-between items-center border-b pb-2">
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 font-bold text-lg"
-          aria-label="Close modal"
-        >
-          ✕
-        </button>
+      <div className="p-6 flex flex-col gap-4">
+        <div className="flex justify-between items-center border-b pb-2">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 font-bold text-lg transition-colors"
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
+        </div>
+        <div>{children}</div>
       </div>
-      <div>{children}</div>
     </dialog>
   );
 }
