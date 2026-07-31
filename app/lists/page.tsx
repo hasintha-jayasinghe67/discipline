@@ -29,6 +29,14 @@ export default function ListsOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [showInactive, setShowInactive] = useState(false);
 
+  // Search & date filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  // Sort
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "students">("newest");
+
   const fetchLists = async () => {
     setLoading(true);
     const { data } = await supabase
@@ -43,12 +51,46 @@ export default function ListsOverviewPage() {
     fetchLists();
   }, []);
 
-  const displayedLists = showInactive
-    ? lists
-    : lists.filter((l) => l.active);
+  // Apply date range filter
+  const filterByDate = (record: { created_at: string }) => {
+    if (!dateFrom && !dateTo) return true;
+    const recordDate = new Date(record.created_at);
+    if (dateFrom && recordDate < new Date(dateFrom)) return false;
+    if (dateTo) {
+      const endDate = new Date(dateTo);
+      endDate.setHours(23, 59, 59, 999); // include the full day
+      if (recordDate > endDate) return false;
+    }
+    return true;
+  };
+
+  // Apply active toggle, title search, and date range
+  const displayedLists = lists
+    .filter((l) => (showInactive ? true : l.active))
+    .filter((l) =>
+      !searchQuery.trim() ||
+      l.title.toLowerCase().includes(searchQuery.trim().toLowerCase())
+    )
+    .filter((l) => filterByDate(l));
+
+  // Sort the filtered lists
+  const sortByNewest = (a: ListRecord, b: ListRecord) =>
+    new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  const sortByOldest = (a: ListRecord, b: ListRecord) =>
+    new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+  const sortByStudentCount = (a: ListRecord, b: ListRecord) =>
+    b.students.length - a.students.length;
+
+  const sortedDisplayedLists = [...displayedLists].sort((a, b) => {
+    if (sortBy === "oldest") return sortByOldest(a, b);
+    if (sortBy === "students") return sortByStudentCount(a, b);
+    return sortByNewest(a, b);
+  });
 
   const activeLists = lists.filter((l) => l.active);
   const inactiveLists = lists.filter((l) => !l.active);
+
+  const filtersActive = searchQuery.trim() !== "" || dateFrom !== "" || dateTo !== "";
 
   if (!authenticated) return null;
 
@@ -74,6 +116,110 @@ export default function ListsOverviewPage() {
               </svg>
               Create New List
             </button>
+          </div>
+
+          {/* Search & date filters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
+            {/* Search by title */}
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search lists by title..."
+                className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              />
+            </div>
+
+            {/* Date range filter */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">
+                Filter by date
+              </span>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
+                <label className="flex items-center gap-2 flex-1">
+                  <span className="text-xs text-gray-500 shrink-0">From</span>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 focus:border-indigo-400 focus:bg-white"
+                  />
+                </label>
+                <label className="flex items-center gap-2 flex-1">
+                  <span className="text-xs text-gray-500 shrink-0">To</span>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 focus:border-indigo-400 focus:bg-white"
+                  />
+                </label>
+              </div>
+              {filtersActive && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors shrink-0"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {/* Sort options */}
+            <div className="border-t border-gray-100 pt-3 flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">
+                Sort by
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSortBy("newest")}
+                  className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
+                    sortBy === "newest"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                  }`}
+                >
+                  Newest
+                </button>
+                <button
+                  onClick={() => setSortBy("oldest")}
+                  className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
+                    sortBy === "oldest"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                  }`}
+                >
+                  Oldest
+                </button>
+                <button
+                  onClick={() => setSortBy("students")}
+                  className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
+                    sortBy === "students"
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                  }`}
+                >
+                  Most students
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Inactive toggle */}
@@ -103,18 +249,24 @@ export default function ListsOverviewPage() {
           )}
 
           {/* Empty state */}
-          {!loading && displayedLists.length === 0 && (
+          {!loading && sortedDisplayedLists.length === 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
               <div className="text-5xl mb-4">📋</div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {showInactive ? "No inactive lists" : "No active lists yet"}
+                {filtersActive
+                  ? "No lists match your filters"
+                  : showInactive
+                  ? "No inactive lists"
+                  : "No active lists yet"}
               </h2>
               <p className="text-sm text-gray-500 mb-5">
-                {showInactive
+                {filtersActive
+                  ? "Try adjusting the search or date range."
+                  : showInactive
                   ? "All lists are currently active."
                   : "Create your first list to get started."}
               </p>
-              {!showInactive && (
+              {!showInactive && !filtersActive && (
                 <button
                   onClick={() => router.push("/lists/create")}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition-all"
@@ -126,9 +278,9 @@ export default function ListsOverviewPage() {
           )}
 
           {/* List cards */}
-          {!loading && displayedLists.length > 0 && (
+          {!loading && sortedDisplayedLists.length > 0 && (
             <div className="flex flex-col gap-3">
-              {displayedLists.map((list) => (
+              {sortedDisplayedLists.map((list) => (
                 <button
                   key={list.id}
                   onClick={() => router.push(`/lists/${list.id}`)}
