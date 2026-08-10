@@ -47,3 +47,15 @@ input:focus, select:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
+
+/* Mobile header menu slide-down */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
