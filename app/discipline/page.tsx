@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
+import Modal from "@/components/Modal";
 import { categoryLabels } from "@/lib/labels";
 
 const punishmentLabels: Record<string, string> = {
@@ -160,6 +161,13 @@ export default function DisciplinePage() {
   const [punishmentSort, setPunishmentSort] = useState<"newest" | "oldest" | "type">("newest");
   const [simpleSort, setSimpleSort] = useState<"newest" | "oldest">("newest");
 
+  // Clear strikes modal
+  const [clearModalOpen, setClearModalOpen] = useState(false);
+  const [clearPassword, setClearPassword] = useState("");
+  const [clearConfirmed, setClearConfirmed] = useState(false);
+  const [clearError, setClearError] = useState("");
+  const [clearing, setClearing] = useState(false);
+
   useEffect(() => {
     if (!authenticated) {
       router.push("/authenticate");
@@ -215,6 +223,52 @@ export default function DisciplinePage() {
       return;
     }
     fetchData();
+  };
+
+  const openClearModal = () => {
+    setClearPassword("");
+    setClearConfirmed(false);
+    setClearError("");
+    setClearModalOpen(true);
+  };
+
+  const handleClearStrikes = async () => {
+    if (!user || clearing) return;
+    setClearing(true);
+    setClearError("");
+    try {
+      // Verify the admin's password against their account
+      const { data, error } = await supabase
+        .from("users")
+        .select("password")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error || !data) {
+        setClearError("Could not verify your account. Please try again.");
+        return;
+      }
+      const bcryptjs = await import("bcryptjs");
+      const match = bcryptjs.compareSync(clearPassword, data.password);
+      if (!match) {
+        setClearError("Incorrect password. Action aborted.");
+        return;
+      }
+      // Permanently delete all strike records
+      const { error: deleteError } = await supabase.from("strikes").delete().gte("id", 0);
+      if (deleteError) {
+        setClearError("Failed to clear strikes: " + deleteError.message);
+        return;
+      }
+      setClearModalOpen(false);
+      setClearPassword("");
+      setClearConfirmed(false);
+      await fetchData();
+      alert("All strikes have been cleared.");
+    } catch (err) {
+      setClearError("Failed to clear strikes: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setClearing(false);
+    }
   };
 
   // Build a unified record feed from all sources
@@ -639,25 +693,49 @@ export default function DisciplinePage() {
                 All strikes, black marks, gold marks, punishments, and comments across students
               </p>
             </div>
-            <a
-              href="/"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors w-fit"
-            >
-              <svg
-                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center gap-2 flex-wrap">
+              {user?.role === "admin" && (
+                <button
+                  onClick={openClearModal}
+                  disabled={strikes.length === 0}
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed px-3.5 py-2 rounded-lg shadow-sm transition-all"
+                >
+                  <svg
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Clear Strikes
+                </button>
+              )}
+              <a
+                href="/"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors w-fit"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back to search
-            </a>
+                <svg
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back to search
+              </a>
+            </div>
           </div>
 
           {/* Summary stat cards */}
@@ -994,6 +1072,66 @@ export default function DisciplinePage() {
           )}
         </div>
       </div>
+
+      {/* Clear Strikes confirmation modal */}
+      <Modal
+        isOpen={clearModalOpen}
+        onClose={() => setClearModalOpen(false)}
+        title="Clear All Strikes"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+            ⚠️ This action will permanently delete <strong>ALL strike records</strong> from the
+            database. This <strong>cannot be undone</strong>.
+          </div>
+          <div>
+            <label htmlFor="clear-password" className="block text-sm font-medium text-gray-700 mb-1">
+              Enter your password to confirm
+            </label>
+            <input
+              id="clear-password"
+              type="password"
+              value={clearPassword}
+              onChange={(e) => setClearPassword(e.target.value)}
+              placeholder="Your password"
+              autoFocus
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-red-400 focus:bg-white"
+            />
+          </div>
+          <label className="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={clearConfirmed}
+              onChange={(e) => setClearConfirmed(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-red-500"
+            />
+            <span>
+              I understand this action is irreversible and permanently deletes all strike records.
+            </span>
+          </label>
+          {clearError && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {clearError}
+            </div>
+          )}
+          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+            <button
+              onClick={handleClearStrikes}
+              disabled={clearing || !clearPassword.trim() || !clearConfirmed}
+              className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            >
+              {clearing ? "Clearing..." : "Delete All Strikes"}
+            </button>
+            <button
+              onClick={() => setClearModalOpen(false)}
+              disabled={clearing}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
