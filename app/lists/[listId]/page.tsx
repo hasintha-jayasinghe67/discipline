@@ -24,7 +24,7 @@ interface ListRecord {
 }
 
 export default function ListDetailPage() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const listId = params.listId as string;
@@ -34,6 +34,12 @@ export default function ListDetailPage() {
       router.push("/authenticate");
     }
   }, [authenticated, router]);
+
+  useEffect(() => {
+    if (authenticated && user?.role !== "admin") {
+      router.push("/");
+    }
+  }, [authenticated, user, router]);
 
   const [list, setList] = useState<ListRecord | null>(null);
   const [students, setStudents] = useState<StudentInfo[]>([]);
@@ -245,7 +251,7 @@ export default function ListDetailPage() {
     setSelectedIds([]);
   };
 
-  if (!authenticated) return null;
+  if (!authenticated || user?.role !== "admin") return null;
 
   if (loading) {
     return (
@@ -380,28 +386,30 @@ export default function ListDetailPage() {
                     : "Select all"}
                 </button>
               </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  onClick={() => setBulkStrikeModalOpen(true)}
-                  disabled={selectedIds.length === 0}
-                  className="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Add Strike
-                </button>
-                <button
-                  onClick={() => setBulkBlackMarkModalOpen(true)}
-                  disabled={selectedIds.length === 0}
-                  className="flex-1 sm:flex-none bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Add Blackmark
-                </button>
-              </div>
+              {user?.role === "admin" && (
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => setBulkStrikeModalOpen(true)}
+                    disabled={selectedIds.length === 0}
+                    className="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Add Strike
+                  </button>
+                  <button
+                    onClick={() => setBulkBlackMarkModalOpen(true)}
+                    disabled={selectedIds.length === 0}
+                    className="flex-1 sm:flex-none bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Add Blackmark
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

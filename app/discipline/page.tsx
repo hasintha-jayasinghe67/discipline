@@ -5,19 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
-
-const categoryLabels: Record<string, string> = {
-  grooming: "Personal Grooming",
-  "repeated-punish": "Repeated Punishments",
-  bullying: "Bullying",
-  late: "Getting Late Often",
-  substances: "Substances",
-  classfuckup: "Classroom Behavior",
-  clubbing: "Clubbing",
-  "good-behavior": "Good Behavior",
-  "giving-back": "Giving Back to College",
-  "excellent-academics": "Excellent Academics",
-};
+import { categoryLabels } from "@/lib/labels";
 
 const punishmentLabels: Record<string, string> = {
   detention: "Detention",
@@ -143,7 +131,7 @@ const typeStyles: Record<
 };
 
 export default function DisciplinePage() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const router = useRouter();
 
   const [strikes, setStrikes] = useState<StrikeRecord[]>([]);
@@ -607,7 +595,7 @@ export default function DisciplinePage() {
                   {formatDate(rec.createdAt)}
                 </span>
               )}
-              {rec.type === "punishments" && (
+              {rec.type === "punishments" && user?.role === "admin" && (
                 <button
                   onClick={() => togglePunishmentStatus(rec.recordId!, rec.status || "ongoing")}
                   className={`ml-auto text-[10px] font-semibold px-2.5 py-1 rounded-full transition-colors ${

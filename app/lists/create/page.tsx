@@ -13,7 +13,7 @@ interface SearchedStudent {
 }
 
 export default function CreateListPage() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -21,6 +21,12 @@ export default function CreateListPage() {
       router.push("/authenticate");
     }
   }, [authenticated, router]);
+
+  useEffect(() => {
+    if (authenticated && user?.role !== "admin") {
+      router.push("/");
+    }
+  }, [authenticated, user, router]);
 
   const [listTitle, setListTitle] = useState("");
   const [createdBy, setCreatedBy] = useState("");
@@ -90,7 +96,7 @@ export default function CreateListPage() {
     }
   };
 
-  if (!authenticated) return null;
+  if (!authenticated || user?.role !== "admin") return null;
 
   return (
     <>

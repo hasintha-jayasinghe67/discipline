@@ -62,7 +62,7 @@ interface Comment {
 }
 
 export default function StudentDetailPage() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const admissionNo = params.admissionNo as string;
@@ -353,63 +353,65 @@ export default function StudentDetailPage() {
             </div>
 
             {/* Action buttons */}
-            <div className="grid grid-cols-2 sm:flex sm:gap-2 gap-2 mt-4 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => setStrikeModalOpen(true)}
-                className="sm:flex-1 hover:cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
-              >
-                <span className="flex items-center justify-center gap-1 sm:gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Strike
-                </span>
-              </button>
-              <button
-                onClick={() => setGoldMarkModalOpen(true)}
-                className="sm:flex-1 hover:cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
-              >
-                <span className="flex items-center justify-center gap-1 sm:gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6m0 2a2 2 0 100-4 2 2 0 000 4zm-6 8a6 6 0 0112 0" />
-                  </svg>
-                  Gold Mark
-                </span>
-              </button>
-              <button
-                onClick={() => setPunishmentModalOpen(true)}
-                className="sm:flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
-              >
-                <span className="flex items-center justify-center gap-1 sm:gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                  Punishment
-                </span>
-              </button>
-              <button
-                onClick={() => setBlackmarkModalOpen(true)}
-                className="sm:flex-1 hover:cursor-pointer bg-rose-500 hover:bg-rose-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
-              >
-                <span className="flex items-center justify-center gap-1 sm:gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Black Mark
-                </span>
-              </button>
-              <button
-                onClick={() => { setCommentModalOpen(true); setCommentor(""); setCommentText(""); }}
-                className="sm:flex-1 hover:cursor-pointer bg-violet-500 hover:bg-violet-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
-              >
-                <span className="flex items-center justify-center gap-1 sm:gap-1.5">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  Comment
-                </span>
-              </button>
-            </div>
+            {user?.role === "admin" && (
+              <div className="grid grid-cols-2 sm:flex sm:gap-2 gap-2 mt-4 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setStrikeModalOpen(true)}
+                  className="sm:flex-1 hover:cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-1.5">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Strike
+                  </span>
+                </button>
+                <button
+                  onClick={() => setGoldMarkModalOpen(true)}
+                  className="sm:flex-1 hover:cursor-pointer bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-1.5">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6m0 2a2 2 0 100-4 2 2 0 000 4zm-6 8a6 6 0 0112 0" />
+                    </svg>
+                    Gold Mark
+                  </span>
+                </button>
+                <button
+                  onClick={() => setPunishmentModalOpen(true)}
+                  className="sm:flex-1 hover:cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-1.5">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Punishment
+                  </span>
+                </button>
+                <button
+                  onClick={() => setBlackmarkModalOpen(true)}
+                  className="sm:flex-1 hover:cursor-pointer bg-rose-500 hover:bg-rose-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-1.5">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Black Mark
+                  </span>
+                </button>
+                <button
+                  onClick={() => { setCommentModalOpen(true); setCommentor(""); setCommentText(""); }}
+                  className="sm:flex-1 hover:cursor-pointer bg-violet-500 hover:bg-violet-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-1.5">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    Comment
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -553,18 +555,20 @@ export default function StudentDetailPage() {
                             <span className="text-sm font-medium text-blue-900">
                               {punishmentLabels[p.Type] || p.Type}
                             </span>
-                            <button
-                              onClick={() =>
-                                togglePunishmentStatus(p.id, p.Status || "ongoing")
-                              }
-                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors shrink-0 ${
-                                p.Status === "completed"
-                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                                  : "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                              }`}
-                            >
-                              {p.Status === "completed" ? "Completed ✓" : "Ongoing"}
-                            </button>
+                            {user?.role === "admin" && (
+                              <button
+                                onClick={() =>
+                                  togglePunishmentStatus(p.id, p.Status || "ongoing")
+                                }
+                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors shrink-0 ${
+                                  p.Status === "completed"
+                                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                    : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                }`}
+                              >
+                                {p.Status === "completed" ? "Completed ✓" : "Ongoing"}
+                              </button>
+                            )}
                           </div>
                           {p.Reason && (
                             <div className="text-xs text-blue-800 mt-0.5">{p.Reason}</div>

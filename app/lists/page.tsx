@@ -16,7 +16,7 @@ interface ListRecord {
 }
 
 export default function ListsOverviewPage() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +24,12 @@ export default function ListsOverviewPage() {
       router.push("/authenticate");
     }
   }, [authenticated, router]);
+
+  useEffect(() => {
+    if (authenticated && user?.role !== "admin") {
+      router.push("/");
+    }
+  }, [authenticated, user, router]);
 
   const [lists, setLists] = useState<ListRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +98,7 @@ export default function ListsOverviewPage() {
 
   const filtersActive = searchQuery.trim() !== "" || dateFrom !== "" || dateTo !== "";
 
-  if (!authenticated) return null;
+  if (!authenticated || user?.role !== "admin") return null;
 
   return (
     <>

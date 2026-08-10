@@ -1,49 +1,85 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+
+export interface UserInfo {
+  id: number;
+  username: string;
+  role: "admin" | "view-only";
+}
 
 interface AuthContextType {
   authenticated: boolean;
-  login: (username: string, password: string) => boolean;
+  user: UserInfo | null;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   authenticated: false,
-  login: () => false,
+  user: null,
+  login: async () => false,
   logout: () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   // Hydrate auth state from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("authenticated");
-    if (stored === "true") {
-      setAuthenticated(true);
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as UserInfo;
+        setUser(parsed);
+        setAuthenticated(true);
+      } catch {
+        // Corrupted localStorage entry — ignore
+      }
     }
     setHydrated(true);
   }, []);
 
-  const login = (username: string, password: string): boolean => {
-    if (username === "admin" && password === "password") {
-      setAuthenticated(true);
-      localStorage.setItem("authenticated", "true");
-      return true;
+  const login = async (username: string, password: string): Promise<boolean> => {
+    // 1. Try Supabase users table
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, username, password, role")
+      .eq("username", username)
+      .maybeSingle();
+
+    if (data && !error && data.username) {
+      // Use bcryptjs (loaded asynchronously and cached)
+      const bcryptjs = await import("bcryptjs");
+      const match = bcryptjs.compareSync(password, data.password);
+      if (match) {
+        const loggedInUser: UserInfo = {
+          id: data.id,
+          username: data.username,
+          role: data.role as "admin" | "view-only",
+        };
+        setUser(loggedInUser);
+        setAuthenticated(true);
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
+        return true;
+      }
+      return false; // Password mismatch
     }
+
     return false;
   };
 
   const logout = () => {
     setAuthenticated(false);
-    localStorage.removeItem("authenticated");
+    setUser(null);
+    localStorage.removeItem("user");
   };
 
   return (
-    <AuthContext.Provider value={{ authenticated, login, logout }}>
-      {/* Don't render children until hydration is complete to avoid flash of wrong content */}
+    <AuthContext.Provider value={{ authenticated, user, login, logout }}>
       {hydrated ? children : null}
     </AuthContext.Provider>
   );

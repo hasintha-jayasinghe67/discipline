@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",
+    "bcryptjs": "^3.0.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4"

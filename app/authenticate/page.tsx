@@ -12,21 +12,18 @@ export default function AuthenticatePage() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Simulate a brief delay for UX
-    setTimeout(() => {
-      const success = login(username, password);
-      if (success) {
-        router.push("/");
-      } else {
-        setError("Invalid username or password");
-        setLoading(false);
-      }
-    }, 400);
+    const success = await login(username, password);
+    if (success) {
+      router.push("/");
+    } else {
+      setError("Invalid username or password");
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,8 +31,8 @@ export default function AuthenticatePage() {
       <div className="w-full max-w-sm">
         {/* Branding */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-3xl">D</span>
+          <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-4 ring-2 ring-white/30 shadow-lg">
+            <img src="/ICON.jpeg" alt="Prefects Discipline" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-white text-2xl font-bold tracking-tight">
             Prefects Discipline

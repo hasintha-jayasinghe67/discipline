@@ -25,7 +25,7 @@ interface ModalTarget {
 }
 
 export default function Home() {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const router = useRouter();
 
   // Which search tab is active
@@ -379,6 +379,7 @@ export default function Home() {
                 onGoldMarkClick={() => openGoldMarkModal(null)}
                 onCommentClick={() => openCommentModal(null)}
                 blackmarks={blackmarks}
+                showActions={user?.role === "admin"}
               />
             ) : (
               <></>
@@ -446,6 +447,7 @@ export default function Home() {
                         onBlackmarkClick={() => openBlackmarkModal(result)}
                         onGoldMarkClick={() => openGoldMarkModal(result)}
                         onCommentClick={() => openCommentModal(result)}
+                        showActions={user?.role === "admin"}
                       />
                     );
                   })}
