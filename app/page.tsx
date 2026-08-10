@@ -7,6 +7,14 @@ import Header from "@/components/Header";
 import Student from "@/components/Student";
 import Modal from "@/components/Modal";
 import { normalizeName, searchStudents, type StudentInfo } from "@/lib/nameSearch";
+import { getThreshold, hasRule } from "@/lib/strikeRules";
+import { categoryLabels } from "@/lib/labels";
+import {
+  addPendingBlackmark,
+  removePendingBlackmark,
+  pendingBlackmarkKeys,
+  setPendingBlackmarksAll,
+} from "@/lib/pendingBlackmarks";
 
 // How many name-search results are revealed at once; "Load more" adds more.
 const NAME_RESULTS_PAGE = 20;
@@ -61,6 +69,20 @@ export default function Home() {
   const studentsCache = useRef<StudentInfo[] | null>(null);
   const countsCache = useRef<Record<number, StudentCounts> | null>(null);
   const searchingRef = useRef(false);
+
+  // Strike → blackmark threshold feature
+  const [pendingBlackmarks, setPendingBlackmarks] = useState<Set<string>>(
+    () => new Set(pendingBlackmarkKeys())
+  );
+  const [blackmarkPrompt, setBlackmarkPrompt] = useState<{
+    admissionNo: number;
+    name: string;
+    category: string;
+    count: number;
+    threshold: number;
+  } | null>(null);
+  const [promptIssuedBy, setPromptIssuedBy] = useState("");
+  const [promptBusy, setPromptBusy] = useState(false);
 
   // Which student an open modal targets (null = the Admission No tab student)
   const [modalStudent, setModalStudent] = useState<ModalTarget | null>(null);
@@ -127,32 +149,62 @@ export default function Home() {
     }
   };
 
-  // Build a { admissionNo: { strikes, blackmarks, goldmarks } } map from the record tables
-  const fetchCountsMap = async (): Promise<Record<number, StudentCounts>> => {
+  // Build a { admissionNo: { strikes, blackmarks, goldmarks } } map and a per-category
+  // strike count map from the record tables
+  const fetchCountsMap = async (): Promise<{
+    counts: Record<number, StudentCounts>;
+    cats: Record<number, Record<string, number>>;
+  }> => {
     const [s, b, g] = await Promise.all([
       supabase.from("strikes").select("*"),
       supabase.from("blackmarks").select("*"),
       supabase.from("goldmarks").select("*"),
     ]);
     const map: Record<number, StudentCounts> = {};
+    const cats: Record<number, Record<string, number>> = {};
     const inc = (admissionNo: number, key: keyof StudentCounts) => {
       if (!map[admissionNo]) {
         map[admissionNo] = { strikes: 0, blackmarks: 0, goldmarks: 0 };
       }
       map[admissionNo][key]++;
     };
-    s.data?.forEach((r) => inc(r["Admission No"], "strikes"));
+    s.data?.forEach((r) => {
+      inc(r["Admission No"], "strikes");
+      const cat = r.Category as string;
+      if (!cats[r["Admission No"]]) cats[r["Admission No"]] = {};
+      cats[r["Admission No"]][cat] = (cats[r["Admission No"]][cat] || 0) + 1;
+    });
     b.data?.forEach((r) => inc(r["Admission No"], "blackmarks"));
     g.data?.forEach((r) => inc(r["Admission No"], "goldmarks"));
-    return map;
+    return { counts: map, cats };
+  };
+
+  // Drop pending flags whose category count is now below threshold
+  const prunePending = (cats: Record<number, Record<string, number>>) => {
+    setPendingBlackmarks((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+      next.forEach((key) => {
+        const [adm, cat] = key.split("|");
+        const count = cats[Number(adm)]?.[cat] || 0;
+        const t = getThreshold(cat);
+        if (t === null || count < t) {
+          next.delete(key);
+          changed = true;
+        }
+      });
+      if (changed) setPendingBlackmarksAll([...next]);
+      return next;
+    });
   };
 
   // Refresh the cached counts map after a record is added (only if it was loaded)
   const refreshRecordCounts = async () => {
     if (!countsCache.current) return;
-    const map = await fetchCountsMap();
-    countsCache.current = map;
-    setCountsMap(map);
+    const { counts, cats } = await fetchCountsMap();
+    countsCache.current = counts;
+    setCountsMap(counts);
+    prunePending(cats);
   };
 
   const handleNameSearch = async () => {
@@ -178,9 +230,11 @@ export default function Home() {
 
     let counts = countsCache.current;
     if (!counts) {
-      counts = await fetchCountsMap();
+      const { counts: c, cats } = await fetchCountsMap();
+      counts = c;
       countsCache.current = counts;
       setCountsMap(counts);
+      prunePending(cats);
     }
 
     const matches = searchStudents(students, q);
@@ -229,6 +283,64 @@ export default function Home() {
   // The admission number the open modal should write to
   const modalAdmissionNo = modalStudent ? modalStudent.admissionNo : Number(name);
   const modalName = modalStudent?.name || studentName || name;
+
+  const hasPendingBlackmark = (admissionNo: number) => {
+    const prefix = `${admissionNo}|`;
+    for (const key of pendingBlackmarks) {
+      if (key.startsWith(prefix)) return true;
+    }
+    return false;
+  };
+
+  const dismissBlackmarkPrompt = () => {
+    if (!blackmarkPrompt || promptBusy) return;
+    const key = `${blackmarkPrompt.admissionNo}|${blackmarkPrompt.category}`;
+    addPendingBlackmark(key);
+    setPendingBlackmarks((prev) => new Set(prev).add(key));
+    setBlackmarkPrompt(null);
+    setPromptIssuedBy("");
+  };
+
+  const confirmBlackmarkPrompt = async () => {
+    if (!blackmarkPrompt || !promptIssuedBy.trim() || promptBusy) return;
+    setPromptBusy(true);
+    try {
+      const { error: bmErr } = await supabase.from("blackmarks").insert({
+        "Admission No": blackmarkPrompt.admissionNo,
+        Reason: blackmarkPrompt.category,
+        issuedBy: promptIssuedBy.trim(),
+      });
+      if (bmErr) {
+        alert("Failed to create blackmark: " + bmErr.message);
+        return;
+      }
+      const { error: delErr } = await supabase
+        .from("strikes")
+        .delete()
+        .eq("Admission No", blackmarkPrompt.admissionNo)
+        .eq("Category", blackmarkPrompt.category);
+      if (delErr) {
+        console.error("Strike reset error:", delErr);
+      }
+      const key = `${blackmarkPrompt.admissionNo}|${blackmarkPrompt.category}`;
+      removePendingBlackmark(key);
+      setPendingBlackmarks((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+      setBlackmarkPrompt(null);
+      setPromptIssuedBy("");
+      await refreshRecordCounts();
+    } catch (err) {
+      alert(
+        "Failed to create blackmark: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    } finally {
+      setPromptBusy(false);
+    }
+  };
 
   const showTooShortHint = nameQuery.trim().length > 0 && normalizeName(nameQuery).length < 2;
 
@@ -380,6 +492,7 @@ export default function Home() {
                 onCommentClick={() => openCommentModal(null)}
                 blackmarks={blackmarks}
                 showActions={user?.role === "admin"}
+                pendingBlackmark={hasPendingBlackmark(Number(name))}
               />
             ) : (
               <></>
@@ -448,6 +561,7 @@ export default function Home() {
                         onGoldMarkClick={() => openGoldMarkModal(result)}
                         onCommentClick={() => openCommentModal(result)}
                         showActions={user?.role === "admin"}
+                        pendingBlackmark={hasPendingBlackmark(result["Admission No"])}
                       />
                     );
                   })}
@@ -560,11 +674,31 @@ export default function Home() {
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
-              await supabase.from("blackmarks").insert({
+              const { error } = await supabase.from("blackmarks").insert({
                 "Admission No": modalAdmissionNo,
                 Reason: blackmarkReason,
                 issuedBy: issuer,
               });
+              if (error) {
+                console.error("Blackmark insert error:", error);
+                alert("Failed to add blackmark: " + error.message);
+                return;
+              }
+              // A blackmark in a rule category consumes that category's strikes (full reset)
+              if (hasRule(blackmarkReason)) {
+                await supabase
+                  .from("strikes")
+                  .delete()
+                  .eq("Admission No", modalAdmissionNo)
+                  .eq("Category", blackmarkReason);
+                const key = `${modalAdmissionNo}|${blackmarkReason}`;
+                removePendingBlackmark(key);
+                setPendingBlackmarks((prev) => {
+                  const next = new Set(prev);
+                  next.delete(key);
+                  return next;
+                });
+              }
 
               setBlackmarkModalOpen(false);
               await refreshRecordCounts();
@@ -619,14 +753,40 @@ export default function Home() {
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
-              await supabase.from("strikes").insert({
+              const { error } = await supabase.from("strikes").insert({
                 "Admission No": modalAdmissionNo,
                 Category: strikeType,
               });
+              if (error) {
+                console.error("Strike insert error:", error);
+                alert("Failed to add strike: " + error.message);
+                return;
+              }
 
               setStrikeModalOpen(false);
               await refreshRecordCounts();
               fetchStudentData();
+
+              // Auto-blackmark threshold check
+              const threshold = getThreshold(strikeType);
+              if (threshold !== null) {
+                const { data: latest } = await supabase
+                  .from("strikes")
+                  .select("Category")
+                  .eq("Admission No", modalAdmissionNo)
+                  .eq("Category", strikeType);
+                const count = latest?.length || 0;
+                if (count >= threshold) {
+                  setPromptIssuedBy("");
+                  setBlackmarkPrompt({
+                    admissionNo: modalAdmissionNo,
+                    name: modalName,
+                    category: strikeType,
+                    count,
+                    threshold,
+                  });
+                }
+              }
             }}
           >
             Save
@@ -637,6 +797,61 @@ export default function Home() {
           >
             Discard
           </button>
+        </div>
+      </Modal>
+
+      {/* Auto-blackmark threshold prompt */}
+      <Modal
+        isOpen={blackmarkPrompt !== null}
+        onClose={dismissBlackmarkPrompt}
+        title="Blackmark Threshold Reached"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <span className="font-semibold text-rose-900">
+              {blackmarkPrompt?.name}
+            </span>{" "}
+            has reached the blackmark threshold for{" "}
+            <span className="font-semibold text-rose-900">
+              {categoryLabels[blackmarkPrompt?.category || ""] ||
+                blackmarkPrompt?.category}
+            </span>{" "}
+            ({blackmarkPrompt?.count}/{blackmarkPrompt?.threshold}). Creating the
+            black mark will reset their strikes in this category.
+          </div>
+          <div>
+            <label
+              htmlFor="prompt-issued-by"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Issued By
+            </label>
+            <input
+              id="prompt-issued-by"
+              type="text"
+              value={promptIssuedBy}
+              onChange={(e) => setPromptIssuedBy(e.target.value)}
+              placeholder="Enter your name"
+              autoFocus
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+            <button
+              onClick={confirmBlackmarkPrompt}
+              disabled={promptBusy || !promptIssuedBy.trim()}
+              className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            >
+              {promptBusy ? "Saving..." : "Create Black Mark"}
+            </button>
+            <button
+              onClick={dismissBlackmarkPrompt}
+              disabled={promptBusy}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       </Modal>
 

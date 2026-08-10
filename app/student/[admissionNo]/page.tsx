@@ -6,6 +6,13 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
+import { getThreshold, hasRule, isAtOrAboveThreshold, strikeCountByCategory } from "@/lib/strikeRules";
+import {
+  addPendingBlackmark,
+  removePendingBlackmark,
+  pendingBlackmarkKeys,
+  setPendingBlackmarksAll,
+} from "@/lib/pendingBlackmarks";
 
 const categoryLabels: Record<string, string> = {
   grooming: "Personal Grooming",
@@ -103,6 +110,18 @@ export default function StudentDetailPage() {
   const [commentor, setCommentor] = useState("");
   const [commentText, setCommentText] = useState("");
 
+  // Strike → blackmark threshold feature
+  const [pendingBlackmarks, setPendingBlackmarks] = useState<Set<string>>(
+    () => new Set(pendingBlackmarkKeys())
+  );
+  const [blackmarkPrompt, setBlackmarkPrompt] = useState<{
+    category: string;
+    count: number;
+    threshold: number;
+  } | null>(null);
+  const [promptIssuedBy, setPromptIssuedBy] = useState("");
+  const [promptBusy, setPromptBusy] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
 
@@ -128,6 +147,26 @@ export default function StudentDetailPage() {
       .eq("Admission No", Number(admissionNo));
 
     setStrikes(strikesData || []);
+
+    // Prune pending blackmark flags whose category count is now below threshold
+    setPendingBlackmarks((prev) => {
+      const counts: Record<string, number> = {};
+      (strikesData || []).forEach((s) => {
+        counts[s.Category] = (counts[s.Category] || 0) + 1;
+      });
+      const next = new Set(prev);
+      let changed = false;
+      next.forEach((key) => {
+        const cat = key.split("|")[1];
+        const t = getThreshold(cat);
+        if (t === null || (counts[cat] || 0) < t) {
+          next.delete(key);
+          changed = true;
+        }
+      });
+      if (changed) setPendingBlackmarksAll([...next]);
+      return next;
+    });
 
     const { data: blackmarksData } = await supabase
       .from("blackmarks")
@@ -164,21 +203,64 @@ export default function StudentDetailPage() {
   }, [admissionNo]);
 
   const handleAddStrike = async () => {
-    await supabase.from("strikes").insert({
+    const { error } = await supabase.from("strikes").insert({
       "Admission No": Number(admissionNo),
       Category: strikeType,
     });
+    if (error) {
+      console.error("Strike insert error:", error);
+      alert("Failed to add strike: " + error.message);
+      return;
+    }
     setStrikeModalOpen(false);
-    fetchData();
+    await fetchData();
+
+    // Auto-blackmark threshold check
+    const threshold = getThreshold(strikeType);
+    if (threshold !== null) {
+      const { data: latest } = await supabase
+        .from("strikes")
+        .select("Category")
+        .eq("Admission No", Number(admissionNo))
+        .eq("Category", strikeType);
+      const count = latest?.length || 0;
+      if (count >= threshold) {
+        setPromptIssuedBy("");
+        setBlackmarkPrompt({ category: strikeType, count, threshold });
+      }
+    }
   };
 
   const handleAddBlackmark = async () => {
-    await supabase.from("blackmarks").insert({
+    const { error } = await supabase.from("blackmarks").insert({
       "Admission No": Number(admissionNo),
       Reason: blackmarkReason,
       issuedBy: issuer,
     });
+    if (error) {
+      console.error("Blackmark insert error:", error);
+      alert("Failed to add blackmark: " + error.message);
+      return;
+    }
     setBlackmarkModalOpen(false);
+    // A blackmark in a rule category consumes that category's strikes (full reset)
+    if (hasRule(blackmarkReason)) {
+      const { error: delErr } = await supabase
+        .from("strikes")
+        .delete()
+        .eq("Admission No", Number(admissionNo))
+        .eq("Category", blackmarkReason);
+      if (delErr) {
+        console.error("Strike reset error:", delErr);
+      }
+      const key = `${admissionNo}|${blackmarkReason}`;
+      removePendingBlackmark(key);
+      setPendingBlackmarks((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
     fetchData();
   };
 
@@ -216,6 +298,56 @@ export default function StudentDetailPage() {
     fetchData();
   };
 
+  const dismissBlackmarkPrompt = () => {
+    if (!blackmarkPrompt || promptBusy) return;
+    const key = `${admissionNo}|${blackmarkPrompt.category}`;
+    addPendingBlackmark(key);
+    setPendingBlackmarks((prev) => new Set(prev).add(key));
+    setBlackmarkPrompt(null);
+    setPromptIssuedBy("");
+  };
+
+  const confirmBlackmarkPrompt = async () => {
+    if (!blackmarkPrompt || !promptIssuedBy.trim() || promptBusy) return;
+    setPromptBusy(true);
+    try {
+      const { error: bmErr } = await supabase.from("blackmarks").insert({
+        "Admission No": Number(admissionNo),
+        Reason: blackmarkPrompt.category,
+        issuedBy: promptIssuedBy.trim(),
+      });
+      if (bmErr) {
+        alert("Failed to create blackmark: " + bmErr.message);
+        return;
+      }
+      const { error: delErr } = await supabase
+        .from("strikes")
+        .delete()
+        .eq("Admission No", Number(admissionNo))
+        .eq("Category", blackmarkPrompt.category);
+      if (delErr) {
+        console.error("Strike reset error:", delErr);
+      }
+      const key = `${admissionNo}|${blackmarkPrompt.category}`;
+      removePendingBlackmark(key);
+      setPendingBlackmarks((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+      setBlackmarkPrompt(null);
+      setPromptIssuedBy("");
+      await fetchData();
+    } catch (err) {
+      alert(
+        "Failed to create blackmark: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    } finally {
+      setPromptBusy(false);
+    }
+  };
+
   const togglePunishmentStatus = async (id: number, currentStatus: string) => {
     const { error } = await supabase
       .from("punishments")
@@ -239,6 +371,9 @@ export default function StudentDetailPage() {
     setCommentText("");
     fetchData();
   };
+
+  // Per-category strike counts (for threshold fractions on each strike card)
+  const strikeCounts = strikeCountByCategory(strikes);
 
   if (!authenticated) return null;
 
@@ -420,6 +555,14 @@ export default function StudentDetailPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
                 Strikes
+                {pendingBlackmarks.size > 0 && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 ml-auto">
+                    {[...pendingBlackmarks]
+                      .map((k) => categoryLabels[k.split("|")[1]] || k.split("|")[1])
+                      .join(", ")}{" "}
+                    — pending black mark
+                  </span>
+                )}
               </h2>
               {strikes.length === 0 ? (
                 <p className="text-gray-400 text-sm py-4 text-center">
@@ -427,33 +570,68 @@ export default function StudentDetailPage() {
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {strikes.map((strike, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5"
-                    >
-                      <span className="w-6 h-6 bg-amber-200 rounded-full flex items-center justify-center text-amber-700 text-xs font-bold">
-                        {i + 1}
-                      </span>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-amber-900">
-                          {categoryLabels[strike.Category] || strike.Category}
-                        </div>
-                        {strike.created_at && (
-                          <div className="text-xs text-amber-600">
-                            {new Date(strike.created_at).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              }
-                            )}
+                  {strikes.map((strike, i) => {
+                    const threshold = getThreshold(strike.Category);
+                    const count = strikeCounts[strike.Category] || 0;
+                    const atThreshold = isAtOrAboveThreshold(count, strike.Category);
+                    return (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 border ${
+                          atThreshold
+                            ? "bg-red-50 border-red-300"
+                            : "bg-amber-50 border-amber-100"
+                        }`}
+                      >
+                        <span
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                            atThreshold
+                              ? "bg-red-200 text-red-700"
+                              : "bg-amber-200 text-amber-700"
+                          }`}
+                        >
+                          {i + 1}
+                        </span>
+                        <div className="flex-1">
+                          <div
+                            className={`text-sm font-medium ${
+                              atThreshold ? "text-red-900" : "text-amber-900"
+                            }`}
+                          >
+                            {categoryLabels[strike.Category] || strike.Category}
                           </div>
+                          {strike.created_at && (
+                            <div
+                              className={`text-xs ${
+                                atThreshold ? "text-red-600" : "text-amber-600"
+                              }`}
+                            >
+                              {new Date(strike.created_at).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {threshold !== null && (
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-full shrink-0 ${
+                              atThreshold
+                                ? "bg-red-100 text-red-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}
+                            title={`${count} of ${threshold} strikes before a blackmark`}
+                          >
+                            {count}/{threshold}
+                          </span>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -639,6 +817,59 @@ export default function StudentDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Auto-blackmark threshold prompt */}
+      <Modal
+        isOpen={blackmarkPrompt !== null}
+        onClose={dismissBlackmarkPrompt}
+        title="Blackmark Threshold Reached"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <span className="font-semibold text-rose-900">{studentName}</span> has
+            reached the blackmark threshold for{" "}
+            <span className="font-semibold text-rose-900">
+              {categoryLabels[blackmarkPrompt?.category || ""] ||
+                blackmarkPrompt?.category}
+            </span>{" "}
+            ({blackmarkPrompt?.count}/{blackmarkPrompt?.threshold}). Creating the
+            black mark will reset their strikes in this category.
+          </div>
+          <div>
+            <label
+              htmlFor="prompt-issued-by"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Issued By
+            </label>
+            <input
+              id="prompt-issued-by"
+              type="text"
+              value={promptIssuedBy}
+              onChange={(e) => setPromptIssuedBy(e.target.value)}
+              placeholder="Enter your name"
+              autoFocus
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+            <button
+              onClick={confirmBlackmarkPrompt}
+              disabled={promptBusy || !promptIssuedBy.trim()}
+              className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            >
+              {promptBusy ? "Saving..." : "Create Black Mark"}
+            </button>
+            <button
+              onClick={dismissBlackmarkPrompt}
+              disabled={promptBusy}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Strike Modal */}
       <Modal

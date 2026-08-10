@@ -6,6 +6,9 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
+import { getThreshold, hasRule } from "@/lib/strikeRules";
+import { categoryLabels } from "@/lib/labels";
+import { addPendingBlackmark, removePendingBlackmark } from "@/lib/pendingBlackmarks";
 
 interface StudentInfo {
   "Admission No": number;
@@ -69,6 +72,14 @@ export default function ListDetailPage() {
   const [blackmarkReason, setBlackmarkReason] = useState("grooming");
   const [issuer, setIssuer] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Bulk strike → blackmark threshold prompt
+  const [bulkPromptOpen, setBulkPromptOpen] = useState(false);
+  const [bulkPromptEntries, setBulkPromptEntries] = useState<
+    { admissionNo: number; name: string; count: number; threshold: number }[]
+  >([]);
+  const [bulkPromptIssuedBy, setBulkPromptIssuedBy] = useState("");
+  const [bulkPromptBusy, setBulkPromptBusy] = useState(false);
 
   const fetchList = async () => {
     setLoading(true);
@@ -215,20 +226,108 @@ export default function ListDetailPage() {
   const handleBulkAddStrike = async () => {
     if (selectedIds.length === 0 || submitting) return;
     setSubmitting(true);
-    const { error } = await supabase.from("strikes").insert(
-      selectedIds.map((admissionNo) => ({
-        "Admission No": admissionNo,
-        Category: strikeType,
-      }))
+    try {
+      const { error } = await supabase.from("strikes").insert(
+        selectedIds.map((admissionNo) => ({
+          "Admission No": admissionNo,
+          Category: strikeType,
+        }))
+      );
+      if (error) {
+        alert("Failed to add strikes: " + error.message);
+        return;
+      }
+      setBulkStrikeModalOpen(false);
+
+      // Check which selected students crossed a blackmark threshold
+      const threshold = getThreshold(strikeType);
+      if (threshold !== null) {
+        const { data: strikesData } = await supabase
+          .from("strikes")
+          .select("*")
+          .eq("Category", strikeType)
+          .in("Admission No", selectedIds);
+        const strikeRows = (strikesData || []) as {
+          "Admission No": number;
+          Category: string;
+        }[];
+        const affected = selectedIds
+          .map((admissionNo) => {
+            const count =
+              strikeRows.filter((s) => s["Admission No"] === admissionNo).length || 0;
+            if (count < threshold) return null;
+            const stu = students.find((s) => s["Admission No"] === admissionNo);
+            return {
+              admissionNo,
+              name: stu?.["Name with Initials"] || `Student #${admissionNo}`,
+              count,
+              threshold,
+            };
+          })
+          .filter((e): e is NonNullable<typeof e> => e !== null);
+        if (affected.length > 0) {
+          setBulkPromptEntries(affected);
+          setBulkPromptIssuedBy("");
+          setBulkPromptOpen(true);
+        }
+      }
+
+      setSelectMode(false);
+      setSelectedIds([]);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const dismissBulkPrompt = () => {
+    if (bulkPromptBusy) return;
+    bulkPromptEntries.forEach((entry) =>
+      addPendingBlackmark(`${entry.admissionNo}|${strikeType}`)
     );
-    setSubmitting(false);
-    if (error) {
-      alert("Failed to add strikes: " + error.message);
+    setBulkPromptOpen(false);
+    setBulkPromptEntries([]);
+    setBulkPromptIssuedBy("");
+  };
+
+  const confirmBulkPrompt = async () => {
+    if (bulkPromptEntries.length === 0 || !bulkPromptIssuedBy.trim() || bulkPromptBusy) {
       return;
     }
-    setBulkStrikeModalOpen(false);
-    setSelectMode(false);
-    setSelectedIds([]);
+    setBulkPromptBusy(true);
+    try {
+      const { error: bmErr } = await supabase.from("blackmarks").insert(
+        bulkPromptEntries.map((entry) => ({
+          "Admission No": entry.admissionNo,
+          Reason: strikeType,
+          issuedBy: bulkPromptIssuedBy.trim(),
+        }))
+      );
+      if (bmErr) {
+        alert("Failed to create blackmarks: " + bmErr.message);
+        return;
+      }
+      const { error: delErr } = await supabase
+        .from("strikes")
+        .delete()
+        .eq("Category", strikeType)
+        .in(
+          "Admission No",
+          bulkPromptEntries.map((e) => e.admissionNo)
+        );
+      if (delErr) {
+        console.error("Strike reset error:", delErr);
+      }
+      setBulkPromptOpen(false);
+      setBulkPromptEntries([]);
+      setBulkPromptIssuedBy("");
+    } catch (err) {
+      alert(
+        "Failed to create blackmarks: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    } finally {
+      setBulkPromptBusy(false);
+    }
   };
 
   const handleBulkAddBlackmark = async () => {
@@ -245,6 +344,17 @@ export default function ListDetailPage() {
     if (error) {
       alert("Failed to add blackmarks: " + error.message);
       return;
+    }
+    // A blackmark in a rule category consumes those students' strikes (full reset)
+    if (hasRule(blackmarkReason)) {
+      await supabase
+        .from("strikes")
+        .delete()
+        .eq("Category", blackmarkReason)
+        .in("Admission No", selectedIds);
+      selectedIds.forEach((admissionNo) =>
+        removePendingBlackmark(`${admissionNo}|${blackmarkReason}`)
+      );
     }
     setBulkBlackMarkModalOpen(false);
     setSelectMode(false);
@@ -549,6 +659,78 @@ export default function ListDetailPage() {
           >
             Discard
           </button>
+        </div>
+      </Modal>
+
+      {/* Bulk strike → blackmark threshold prompt */}
+      <Modal
+        isOpen={bulkPromptOpen}
+        onClose={dismissBulkPrompt}
+        title="Blackmark Threshold Reached"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm text-rose-700">
+            <span className="font-semibold text-rose-900">
+              {bulkPromptEntries.length}
+            </span>{" "}
+            student{bulkPromptEntries.length !== 1 ? "s" : ""} reached the{" "}
+            <span className="font-semibold text-rose-900">
+              {categoryLabels[strikeType] || strikeType}
+            </span>{" "}
+            blackmark threshold:
+          </div>
+          <div className="max-h-48 overflow-y-auto flex flex-col gap-1.5 border border-gray-100 rounded-lg p-2">
+            {bulkPromptEntries.map((entry) => (
+              <div
+                key={entry.admissionNo}
+                className="flex items-center justify-between gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2"
+              >
+                <span className="font-medium text-gray-900 truncate">
+                  {entry.name}
+                </span>
+                <span className="text-xs font-bold text-rose-600 shrink-0">
+                  {entry.count}/{entry.threshold}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500">
+            Creating the black marks will reset each student's strikes in this
+            category.
+          </p>
+          <div>
+            <label
+              htmlFor="bulk-prompt-issued-by"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Issued By
+            </label>
+            <input
+              id="bulk-prompt-issued-by"
+              type="text"
+              value={bulkPromptIssuedBy}
+              onChange={(e) => setBulkPromptIssuedBy(e.target.value)}
+              placeholder="Enter your name"
+              autoFocus
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
+          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+            <button
+              onClick={confirmBulkPrompt}
+              disabled={bulkPromptBusy || !bulkPromptIssuedBy.trim()}
+              className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            >
+              {bulkPromptBusy ? "Saving..." : "Create Black Marks"}
+            </button>
+            <button
+              onClick={dismissBulkPrompt}
+              disabled={bulkPromptBusy}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       </Modal>
 
