@@ -1,16 +1,37 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Student from "@/components/Student";
 import Modal from "@/components/Modal";
+import { normalizeName, searchStudents, type StudentInfo } from "@/lib/nameSearch";
+
+// How many name-search results are revealed at once; "Load more" adds more.
+const NAME_RESULTS_PAGE = 20;
+
+type Tab = "admission" | "name";
+
+interface StudentCounts {
+  strikes: number;
+  blackmarks: number;
+  goldmarks: number;
+}
+
+interface ModalTarget {
+  admissionNo: number;
+  name: string;
+}
 
 export default function Home() {
   const { authenticated } = useAuth();
   const router = useRouter();
 
+  // Which search tab is active
+  const [activeTab, setActiveTab] = useState<Tab>("admission");
+
+  // Admission No tab state (unchanged behavior)
   const [name, setName] = useState("");
 
   useEffect(() => {
@@ -20,11 +41,29 @@ export default function Home() {
   }, [authenticated, router]);
 
   const [studentName, setStudentName] = useState("");
+  const [notFound, setNotFound] = useState(false);
   const [Class, setClass] = useState("");
   const [house, setHouse] = useState("");
   const [strikes, setStrikes] = useState(0);
   const [blackmarks, setBlackmarks] = useState(0);
   const [goldmarks, setGoldmarks] = useState(0);
+
+  // Name tab state
+  const [nameQuery, setNameQuery] = useState("");
+  const [nameResults, setNameResults] = useState<StudentInfo[]>([]);
+  const [visibleCount, setVisibleCount] = useState(NAME_RESULTS_PAGE);
+  const [nameSearched, setNameSearched] = useState(false);
+  const [nameTooShort, setNameTooShort] = useState(false);
+  const [searching, setSearching] = useState(false);
+
+  // Cached data (lazily fetched on first name search)
+  const [countsMap, setCountsMap] = useState<Record<number, StudentCounts>>({});
+  const studentsCache = useRef<StudentInfo[] | null>(null);
+  const countsCache = useRef<Record<number, StudentCounts> | null>(null);
+  const searchingRef = useRef(false);
+
+  // Which student an open modal targets (null = the Admission No tab student)
+  const [modalStudent, setModalStudent] = useState<ModalTarget | null>(null);
 
   // Modals
   const [strikeModalOpen, setStrikeModalOpen] = useState(false);
@@ -45,16 +84,23 @@ export default function Home() {
   const [commentText, setCommentText] = useState("");
 
   const fetchStudentData = async () => {
+    if (!name.trim()) return;
+
     const students = await supabase
       .from("students")
       .select()
       .eq("Admission No", Number(name));
 
     if ((students.data?.length as number) < 1) {
-      setStudentName(
-        "Not found (He lied to you, you're not scary, you're a lolla)",
-      );
+      setNotFound(true);
+      setStudentName("");
+      setClass("");
+      setHouse("");
+      setStrikes(0);
+      setBlackmarks(0);
+      setGoldmarks(0);
     } else {
+      setNotFound(false);
       students.data?.map((s) => {
         setClass(s.Class);
         setStudentName(s["Name with Initials"]);
@@ -81,60 +127,344 @@ export default function Home() {
     }
   };
 
+  // Build a { admissionNo: { strikes, blackmarks, goldmarks } } map from the record tables
+  const fetchCountsMap = async (): Promise<Record<number, StudentCounts>> => {
+    const [s, b, g] = await Promise.all([
+      supabase.from("strikes").select("*"),
+      supabase.from("blackmarks").select("*"),
+      supabase.from("goldmarks").select("*"),
+    ]);
+    const map: Record<number, StudentCounts> = {};
+    const inc = (admissionNo: number, key: keyof StudentCounts) => {
+      if (!map[admissionNo]) {
+        map[admissionNo] = { strikes: 0, blackmarks: 0, goldmarks: 0 };
+      }
+      map[admissionNo][key]++;
+    };
+    s.data?.forEach((r) => inc(r["Admission No"], "strikes"));
+    b.data?.forEach((r) => inc(r["Admission No"], "blackmarks"));
+    g.data?.forEach((r) => inc(r["Admission No"], "goldmarks"));
+    return map;
+  };
+
+  // Refresh the cached counts map after a record is added (only if it was loaded)
+  const refreshRecordCounts = async () => {
+    if (!countsCache.current) return;
+    const map = await fetchCountsMap();
+    countsCache.current = map;
+    setCountsMap(map);
+  };
+
+  const handleNameSearch = async () => {
+    if (searchingRef.current) return;
+    const q = normalizeName(nameQuery);
+    setNameSearched(true);
+    if (q.length < 2) {
+      setNameTooShort(true);
+      setNameResults([]);
+      setVisibleCount(NAME_RESULTS_PAGE);
+      return;
+    }
+    setNameTooShort(false);
+    setSearching(true);
+    searchingRef.current = true;
+
+    let students = studentsCache.current;
+    if (!students) {
+      const { data } = await supabase.from("students").select("*");
+      students = data || [];
+      studentsCache.current = students;
+    }
+
+    let counts = countsCache.current;
+    if (!counts) {
+      counts = await fetchCountsMap();
+      countsCache.current = counts;
+      setCountsMap(counts);
+    }
+
+    const matches = searchStudents(students, q);
+    setNameResults(matches);
+    setVisibleCount(NAME_RESULTS_PAGE);
+    setSearching(false);
+    searchingRef.current = false;
+  };
+
+  // Modal openers: pass a result card to target it, or null for the Admission No tab student
+  const openStrikeModal = (target: StudentInfo | null) => {
+    setModalStudent(
+      target
+        ? { admissionNo: target["Admission No"], name: target["Name with Initials"] }
+        : null
+    );
+    setStrikeModalOpen(true);
+  };
+  const openBlackmarkModal = (target: StudentInfo | null) => {
+    setModalStudent(
+      target
+        ? { admissionNo: target["Admission No"], name: target["Name with Initials"] }
+        : null
+    );
+    setBlackmarkModalOpen(true);
+  };
+  const openGoldMarkModal = (target: StudentInfo | null) => {
+    setModalStudent(
+      target
+        ? { admissionNo: target["Admission No"], name: target["Name with Initials"] }
+        : null
+    );
+    setGoldMarkModalOpen(true);
+  };
+  const openCommentModal = (target: StudentInfo | null) => {
+    setModalStudent(
+      target
+        ? { admissionNo: target["Admission No"], name: target["Name with Initials"] }
+        : null
+    );
+    setCommentor(issuer);
+    setCommentText("");
+    setCommentModalOpen(true);
+  };
+
+  // The admission number the open modal should write to
+  const modalAdmissionNo = modalStudent ? modalStudent.admissionNo : Number(name);
+  const modalName = modalStudent?.name || studentName || name;
+
+  const showTooShortHint = nameQuery.trim().length > 0 && normalizeName(nameQuery).length < 2;
+
   if (!authenticated) return null;
+
+  const countLabel =
+    visibleCount < nameResults.length
+      ? `Showing ${visibleCount} of ${nameResults.length} students`
+      : `${nameResults.length} student${nameResults.length === 1 ? "" : "s"} found`;
 
   return (
     <>
       <Header />
       <div className="p-4 sm:p-6 bg-gray-50">
         <div className="max-w-2xl mx-auto flex flex-col gap-3">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-            <div className="relative flex-1">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+            {/* Search mode tabs */}
+            <div className="flex gap-1.5 mb-3 pb-3 border-b border-gray-100">
+              <button
+                onClick={() => setActiveTab("admission")}
+                className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all cursor-pointer ${
+                  activeTab === "admission"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                }`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-                placeholder="Enter Admission No"
-                className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
-              />
+                Admission No
+              </button>
+              <button
+                onClick={() => setActiveTab("name")}
+                className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all cursor-pointer ${
+                  activeTab === "name"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                }`}
+              >
+                Name
+              </button>
             </div>
-            <button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm"
-              onClick={fetchStudentData}
-            >
-              Search
-            </button>
+
+            {activeTab === "admission" ? (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="relative flex-1">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setNotFound(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        fetchStudentData();
+                      }
+                    }}
+                    placeholder="Enter Admission No"
+                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                  />
+                </div>
+                <button
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm"
+                  onClick={fetchStudentData}
+                >
+                  Search
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="relative flex-1">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    value={nameQuery}
+                    onChange={(e) => {
+                      setNameQuery(e.target.value);
+                      setNameSearched(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleNameSearch();
+                      }
+                    }}
+                    placeholder="Enter student name (min 2 letters)"
+                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                  />
+                </div>
+                <button
+                  disabled={searching || normalizeName(nameQuery).length < 2}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm"
+                  onClick={handleNameSearch}
+                >
+                  {searching ? "..." : "Search"}
+                </button>
+              </div>
+            )}
           </div>
-          {studentName ? (
-            <Student
-              admission={name}
-              name={studentName}
-              Class={Class}
-              house={house}
-              strikes={strikes}
-              goldmarks={goldmarks}
-              onStrikeClick={() => setStrikeModalOpen(true)}
-              onBlackmarkClick={() => setBlackmarkModalOpen(true)}
-              onGoldMarkClick={() => setGoldMarkModalOpen(true)}
-              onCommentClick={() => { setCommentModalOpen(true); setCommentor(issuer); setCommentText(""); }}
-              blackmarks={blackmarks}
-            />
+
+          {activeTab === "admission" ? (
+            notFound ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+                <div className="text-4xl sm:text-5xl mb-3">🔍</div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
+                  Student Not Found
+                </h2>
+                <p className="text-sm text-gray-500">
+                  No student found with Admission No:{" "}
+                  <span className="font-semibold text-gray-700">{name}</span>
+                </p>
+                <p className="text-xs text-gray-400 italic mt-3">
+                  {"He lied to you, you're not scary, you're a lolla"}
+                </p>
+              </div>
+            ) : studentName ? (
+              <Student
+                admission={name}
+                name={studentName}
+                Class={Class}
+                house={house}
+                strikes={strikes}
+                goldmarks={goldmarks}
+                onStrikeClick={() => openStrikeModal(null)}
+                onBlackmarkClick={() => openBlackmarkModal(null)}
+                onGoldMarkClick={() => openGoldMarkModal(null)}
+                onCommentClick={() => openCommentModal(null)}
+                blackmarks={blackmarks}
+              />
+            ) : (
+              <></>
+            )
           ) : (
-            <></>
+            <>
+              {showTooShortHint && !nameSearched && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+                  <p className="text-sm text-gray-500">
+                    Type at least 2 letters to search.
+                  </p>
+                </div>
+              )}
+              {nameSearched && searching && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-gray-400 text-base animate-pulse">
+                    Searching students...
+                  </div>
+                </div>
+              )}
+              {nameSearched && !searching && nameTooShort && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+                  <p className="text-sm text-gray-500">
+                    Type at least 2 letters to search.
+                  </p>
+                </div>
+              )}
+              {nameSearched && !searching && !nameTooShort && nameResults.length === 0 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+                  <div className="text-4xl sm:text-5xl mb-3">🔍</div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
+                    Student Not Found
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    No student found with name:{" "}
+                    <span className="font-semibold text-gray-700">{nameQuery}</span>
+                  </p>
+                  <p className="text-xs text-gray-400 italic mt-3">
+                    {"He lied to you, you're not scary, you're a lolla"}
+                  </p>
+                </div>
+              )}
+              {nameSearched && !searching && !nameTooShort && nameResults.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <div className="text-xs text-gray-500 font-medium px-1">
+                    {countLabel}
+                  </div>
+                  {nameResults.slice(0, visibleCount).map((result) => {
+                    const counts = countsMap[result["Admission No"]] || {
+                      strikes: 0,
+                      blackmarks: 0,
+                      goldmarks: 0,
+                    };
+                    return (
+                      <Student
+                        key={result["Admission No"]}
+                        admission={String(result["Admission No"])}
+                        name={result["Name with Initials"]}
+                        Class={result.Class}
+                        house={result["School House"]}
+                        strikes={counts.strikes}
+                        blackmarks={counts.blackmarks}
+                        goldmarks={counts.goldmarks}
+                        onStrikeClick={() => openStrikeModal(result)}
+                        onBlackmarkClick={() => openBlackmarkModal(result)}
+                        onGoldMarkClick={() => openGoldMarkModal(result)}
+                        onCommentClick={() => openCommentModal(result)}
+                      />
+                    );
+                  })}
+                  {visibleCount < nameResults.length && (
+                    <button
+                      onClick={() =>
+                        setVisibleCount((c) =>
+                          Math.min(c + NAME_RESULTS_PAGE, nameResults.length)
+                        )
+                      }
+                      className="w-full bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-3 text-sm font-medium text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all cursor-pointer"
+                    >
+                      Load more students ({nameResults.length - visibleCount}{" "}
+                      remaining)
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
         {/* Punishments section commented out for now */}
@@ -167,17 +497,21 @@ export default function Home() {
         onClose={() => {
           setBlackmarkModalOpen(false);
         }}
-        title={`Add black mark to student ${name}`}
+        title={`Add black mark to student ${modalName}`}
       >
         <div className="text-sm text-gray-500 mb-3">
           Adding black mark to student{" "}
-          <span className="font-semibold text-gray-700">{name}</span>
+          <span className="font-semibold text-gray-700">{modalName}</span>
         </div>
         <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-4">
           <span className="text-sm text-rose-700 font-medium">
             Current Strikes
           </span>
-          <span className="text-lg font-bold text-rose-600">{strikes}</span>
+          <span className="text-lg font-bold text-rose-600">
+            {modalStudent
+              ? countsMap[modalStudent.admissionNo]?.strikes ?? 0
+              : strikes}
+          </span>
         </div>
         <div className="flex flex-col gap-3">
           <div>
@@ -199,7 +533,7 @@ export default function Home() {
               <option value="bullying">Bullying</option>
               <option value="late">Getting Late Often</option>
               <option value="substances">Substances</option>
-              <option value="classfuckup">Class Fuckup</option>
+              <option value="classfuckup">Classroom Behavior</option>
               <option value="clubbing">Clubbing</option>
             </select>
           </div>
@@ -224,17 +558,14 @@ export default function Home() {
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
-              console.log("entering");
-              console.log(name, blackmarkReason, issuer);
               await supabase.from("blackmarks").insert({
-                "Admission No": Number(name),
+                "Admission No": modalAdmissionNo,
                 Reason: blackmarkReason,
                 issuedBy: issuer,
               });
 
-              console.log("done");
-
               setBlackmarkModalOpen(false);
+              await refreshRecordCounts();
               fetchStudentData();
             }}
           >
@@ -253,11 +584,11 @@ export default function Home() {
         onClose={() => {
           setStrikeModalOpen(false);
         }}
-        title={`Add strike to student ${name}`}
+        title={`Add strike to student ${modalName}`}
       >
         <div className="text-sm text-gray-500 mb-4">
           Adding strike to student{" "}
-          <span className="font-semibold text-gray-700">{name}</span>
+          <span className="font-semibold text-gray-700">{modalName}</span>
         </div>
         <div>
           <label
@@ -278,7 +609,7 @@ export default function Home() {
             <option value="bullying">Bullying</option>
             <option value="late">Getting Late Often</option>
             <option value="substances">Substances</option>
-            <option value="classfuckup">Class Fuckup</option>
+            <option value="classfuckup">Classroom Behavior</option>
             <option value="clubbing">Clubbing</option>
           </select>
         </div>
@@ -287,11 +618,12 @@ export default function Home() {
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
               await supabase.from("strikes").insert({
-                "Admission No": Number(name),
+                "Admission No": modalAdmissionNo,
                 Category: strikeType,
               });
 
               setStrikeModalOpen(false);
+              await refreshRecordCounts();
               fetchStudentData();
             }}
           >
@@ -310,17 +642,21 @@ export default function Home() {
       <Modal
         isOpen={goldMarkModalOpen}
         onClose={() => setGoldMarkModalOpen(false)}
-        title={`Add gold mark to student ${name}`}
+        title={`Add gold mark to student ${modalName}`}
       >
         <div className="text-sm text-gray-500 mb-3">
           Adding gold mark to student{" "}
-          <span className="font-semibold text-gray-700">{name}</span>
+          <span className="font-semibold text-gray-700">{modalName}</span>
         </div>
         <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
           <span className="text-sm text-emerald-700 font-medium">
             Current Gold Marks
           </span>
-          <span className="text-lg font-bold text-emerald-600">{goldmarks}</span>
+          <span className="text-lg font-bold text-emerald-600">
+            {modalStudent
+              ? countsMap[modalStudent.admissionNo]?.goldmarks ?? 0
+              : goldmarks}
+          </span>
         </div>
         <div className="flex flex-col gap-3">
           <div>
@@ -363,7 +699,7 @@ export default function Home() {
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
               const { error } = await supabase.from("goldmarks").insert({
-                "Admission No": Number(name),
+                "Admission No": modalAdmissionNo,
                 Reason: goldMarkReason,
                 issuedBy: issuer,
               });
@@ -373,6 +709,7 @@ export default function Home() {
                 return;
               }
               setGoldMarkModalOpen(false);
+              await refreshRecordCounts();
               fetchStudentData();
             }}
           >
@@ -391,11 +728,11 @@ export default function Home() {
       <Modal
         isOpen={commentModalOpen}
         onClose={() => setCommentModalOpen(false)}
-        title={`Add comment for student ${name}`}
+        title={`Add comment for student ${modalName}`}
       >
         <div className="text-sm text-gray-500 mb-3">
           Adding comment for student{" "}
-          <span className="font-semibold text-gray-700">{name}</span>
+          <span className="font-semibold text-gray-700">{modalName}</span>
         </div>
         <div className="flex flex-col gap-3">
           <div>
@@ -436,12 +773,13 @@ export default function Home() {
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
               await supabase.from("comments").insert({
-                "Admission No": Number(name),
+                "Admission No": modalAdmissionNo,
                 commentor: commentor,
                 commentText: commentText,
               });
               setCommentModalOpen(false);
               setCommentText("");
+              fetchStudentData();
             }}
           >
             Save

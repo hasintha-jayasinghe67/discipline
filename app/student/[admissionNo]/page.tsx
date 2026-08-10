@@ -20,6 +20,13 @@ const categoryLabels: Record<string, string> = {
   "excellent-academics": "Excellent Academics",
 };
 
+const punishmentLabels: Record<string, string> = {
+  detention: "Detention",
+  "weekend-duty": "Weekend Duty",
+  cleanup: "Cleanup",
+  other: "Other",
+};
+
 interface Strike {
   Category: string;
   created_at?: string;
@@ -34,6 +41,15 @@ interface Blackmark {
 interface Goldmark {
   Reason: string;
   issuedBy: string;
+  created_at?: string;
+}
+
+interface Punishment {
+  id: number;
+  Type: string;
+  Reason?: string;
+  assignedBy?: string;
+  Status?: string;
   created_at?: string;
 }
 
@@ -64,6 +80,7 @@ export default function StudentDetailPage() {
   const [strikes, setStrikes] = useState<Strike[]>([]);
   const [blackmarks, setBlackmarks] = useState<Blackmark[]>([]);
   const [goldmarks, setGoldmarks] = useState<Goldmark[]>([]);
+  const [punishments, setPunishments] = useState<Punishment[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -81,6 +98,8 @@ export default function StudentDetailPage() {
   const [blackmarkReason, setBlackmarkReason] = useState("grooming");
   const [goldMarkReason, setGoldMarkReason] = useState("good-behavior");
   const [punishmentReason, setPunishmentReason] = useState("");
+  const [punishmentType, setPunishmentType] = useState("detention");
+  const [punishmentAssignedBy, setPunishmentAssignedBy] = useState("");
   const [commentor, setCommentor] = useState("");
   const [commentText, setCommentText] = useState("");
 
@@ -123,6 +142,13 @@ export default function StudentDetailPage() {
       .eq("Admission No", Number(admissionNo));
 
     setGoldmarks(goldmarksData || []);
+
+    const { data: punishmentsData } = await supabase
+      .from("punishments")
+      .select()
+      .eq("Admission No", Number(admissionNo));
+
+    setPunishments(punishmentsData || []);
 
     const { data: commentsData } = await supabase
       .from("comments")
@@ -172,8 +198,35 @@ export default function StudentDetailPage() {
   };
 
   const handleAddPunishment = async () => {
-    // Placeholder for punishment logic - add to a punishments table when ready
+    const { error } = await supabase.from("punishments").insert({
+      "Admission No": Number(admissionNo),
+      Type: punishmentType,
+      Reason: punishmentReason,
+      assignedBy: punishmentAssignedBy,
+      Status: "ongoing",
+    });
+    if (error) {
+      console.error("Punishment insert error:", error);
+      alert("Failed to add punishment: " + error.message);
+      return;
+    }
     setPunishmentModalOpen(false);
+    setPunishmentReason("");
+    setPunishmentAssignedBy("");
+    fetchData();
+  };
+
+  const togglePunishmentStatus = async (id: number, currentStatus: string) => {
+    const { error } = await supabase
+      .from("punishments")
+      .update({ Status: currentStatus === "completed" ? "ongoing" : "completed" })
+      .eq("id", id);
+    if (error) {
+      console.error("Punishment status update error:", error);
+      alert("Failed to update punishment: " + error.message);
+      return;
+    }
+    fetchData();
   };
 
   const handleAddComment = async () => {
@@ -359,7 +412,7 @@ export default function StudentDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Strikes List */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -474,6 +527,64 @@ export default function StudentDetailPage() {
                 </div>
               )}
             </div>
+            {/* Punishments List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                Punishments
+              </h2>
+              {punishments.length === 0 ? (
+                <p className="text-gray-400 text-sm py-4 text-center">
+                  No punishments recorded
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {punishments.map((p, i) => (
+                    <div
+                      key={p.id || i}
+                      className="flex flex-col gap-1 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 text-xs font-bold shrink-0">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-medium text-blue-900">
+                              {punishmentLabels[p.Type] || p.Type}
+                            </span>
+                            <button
+                              onClick={() =>
+                                togglePunishmentStatus(p.id, p.Status || "ongoing")
+                              }
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors shrink-0 ${
+                                p.Status === "completed"
+                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                  : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                              }`}
+                            >
+                              {p.Status === "completed" ? "Completed ✓" : "Ongoing"}
+                            </button>
+                          </div>
+                          {p.Reason && (
+                            <div className="text-xs text-blue-800 mt-0.5">{p.Reason}</div>
+                          )}
+                          <div className="text-xs text-blue-600 mt-0.5">
+                            {p.assignedBy ? `Assigned by: ${p.assignedBy} · ` : ""}
+                            {p.created_at &&
+                              new Date(p.created_at).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Comments Section */}
@@ -550,7 +661,7 @@ export default function StudentDetailPage() {
             <option value="bullying">Bullying</option>
             <option value="late">Getting Late Often</option>
             <option value="substances">Substances</option>
-            <option value="classfuckup">Class Fuckup</option>
+            <option value="classfuckup">Classroom Behavior</option>
             <option value="clubbing">Clubbing</option>
           </select>
         </div>
@@ -600,7 +711,7 @@ export default function StudentDetailPage() {
               <option value="bullying">Bullying</option>
               <option value="late">Getting Late Often</option>
               <option value="substances">Substances</option>
-              <option value="classfuckup">Class Fuckup</option>
+              <option value="classfuckup">Classroom Behavior</option>
               <option value="clubbing">Clubbing</option>
             </select>
           </div>
@@ -704,18 +815,49 @@ export default function StudentDetailPage() {
           Assigning punishment to{" "}
           <span className="font-semibold text-gray-700">{studentName}</span>
         </div>
-        <div>
-          <label htmlFor="detail-punishment-reason" className="block text-sm font-medium text-gray-700 mb-1">
-            Punishment Reason
-          </label>
-          <textarea
-            id="detail-punishment-reason"
-            value={punishmentReason}
-            onChange={(e) => setPunishmentReason(e.target.value)}
-            placeholder="Describe the punishment..."
-            rows={3}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
-          />
+        <div className="flex flex-col gap-3">
+          <div>
+            <label htmlFor="detail-punishment-type" className="block text-sm font-medium text-gray-700 mb-1">
+              Punishment Type
+            </label>
+            <select
+              id="detail-punishment-type"
+              value={punishmentType}
+              onChange={(e) => setPunishmentType(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+            >
+              <option value="detention">Detention</option>
+              <option value="weekend-duty">Weekend Duty</option>
+              <option value="cleanup">Cleanup</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="detail-punishment-reason" className="block text-sm font-medium text-gray-700 mb-1">
+              Reason
+            </label>
+            <textarea
+              id="detail-punishment-reason"
+              value={punishmentReason}
+              onChange={(e) => setPunishmentReason(e.target.value)}
+              placeholder="Describe the punishment..."
+              rows={3}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="detail-punishment-assignedby" className="block text-sm font-medium text-gray-700 mb-1">
+              Assigned By
+            </label>
+            <input
+              value={punishmentAssignedBy}
+              onChange={(e) => setPunishmentAssignedBy(e.target.value)}
+              type="text"
+              id="detail-punishment-assignedby"
+              placeholder="Enter your name"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+            />
+          </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
           <button

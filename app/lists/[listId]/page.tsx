@@ -523,7 +523,7 @@ export default function ListDetailPage() {
             <option value="bullying">Bullying</option>
             <option value="late">Getting Late Often</option>
             <option value="substances">Substances</option>
-            <option value="classfuckup">Class Fuckup</option>
+            <option value="classfuckup">Classroom Behavior</option>
             <option value="clubbing">Clubbing</option>
           </select>
         </div>
@@ -575,7 +575,7 @@ export default function ListDetailPage() {
               <option value="bullying">Bullying</option>
               <option value="late">Getting Late Often</option>
               <option value="substances">Substances</option>
-              <option value="classfuckup">Class Fuckup</option>
+              <option value="classfuckup">Classroom Behavior</option>
               <option value="clubbing">Clubbing</option>
             </select>
           </div>
