@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 import { categoryLabels } from "@/lib/labels";
@@ -649,7 +649,7 @@ export default function DisciplinePage() {
                   {formatDate(rec.createdAt)}
                 </span>
               )}
-              {rec.type === "punishments" && user?.role === "admin" && (
+              {rec.type === "punishments" && isAdminOrAbove(user) && (
                 <button
                   onClick={() => togglePunishmentStatus(rec.recordId!, rec.status || "ongoing")}
                   className={`ml-auto text-[10px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
@@ -694,7 +694,7 @@ export default function DisciplinePage() {
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {user?.role === "admin" && (
+              {isAdminOrAbove(user) && (
                 <button
                   onClick={openClearModal}
                   disabled={strikes.length === 0}

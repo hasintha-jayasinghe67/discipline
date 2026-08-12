@@ -6,8 +6,18 @@ import { supabase } from "@/lib/supabase";
 export interface UserInfo {
   id: number;
   username: string;
-  role: "admin" | "view-only";
+  role: "superuser" | "admin" | "view-only";
 }
+
+export type Role = UserInfo["role"];
+
+// Admins AND superusers pass the old `role === "admin"` checks.
+// Superusers additionally pass `role === "superuser"` (user management).
+export const isAdminOrAbove = (user: UserInfo | null): boolean =>
+  user?.role === "admin" || user?.role === "superuser";
+
+export const isSuperuser = (user: UserInfo | null): boolean =>
+  user?.role === "superuser";
 
 interface AuthContextType {
   authenticated: boolean;
@@ -28,7 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate auth state from localStorage on mount
+  // Hydrate auth state from localStorage on mount, then re-verify the
+  // user's role against the DB so role changes / the superuser migration
+  // take effect without a manual re-login.
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) {
@@ -36,6 +48,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(stored) as UserInfo;
         setUser(parsed);
         setAuthenticated(true);
+        // Re-verify: fetch the freshest role for this user id.
+        (async () => {
+          try {
+            const { data } = await supabase
+              .from("users")
+              .select("username, role")
+              .eq("id", parsed.id)
+              .maybeSingle();
+            if (data && data.username === parsed.username) {
+              const fresh: UserInfo = {
+                ...parsed,
+                role: data.role as Role,
+              };
+              setUser(fresh);
+              localStorage.setItem("user", JSON.stringify(fresh));
+            } else {
+              // Account was deleted or renamed — log out.
+              setAuthenticated(false);
+              setUser(null);
+              localStorage.removeItem("user");
+            }
+          } catch {
+            // Offline / query failed — keep the cached session as-is.
+          }
+        })();
       } catch {
         // Corrupted localStorage entry — ignore
       }
@@ -59,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const loggedInUser: UserInfo = {
           id: data.id,
           username: data.username,
-          role: data.role as "admin" | "view-only",
+          role: data.role as Role,
         };
         setUser(loggedInUser);
         setAuthenticated(true);

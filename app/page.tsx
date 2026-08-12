@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Student from "@/components/Student";
 import Modal from "@/components/Modal";
@@ -491,7 +491,7 @@ export default function Home() {
                 onGoldMarkClick={() => openGoldMarkModal(null)}
                 onCommentClick={() => openCommentModal(null)}
                 blackmarks={blackmarks}
-                showActions={user?.role === "admin"}
+                showActions={isAdminOrAbove(user)}
                 pendingBlackmark={hasPendingBlackmark(Number(name))}
               />
             ) : (
@@ -560,7 +560,7 @@ export default function Home() {
                         onBlackmarkClick={() => openBlackmarkModal(result)}
                         onGoldMarkClick={() => openGoldMarkModal(result)}
                         onCommentClick={() => openCommentModal(result)}
-                        showActions={user?.role === "admin"}
+                        showActions={isAdminOrAbove(user)}
                         pendingBlackmark={hasPendingBlackmark(result["Admission No"])}
                       />
                     );

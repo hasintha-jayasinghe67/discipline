@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 import { getThreshold, hasRule } from "@/lib/strikeRules";
@@ -39,7 +39,7 @@ export default function ListDetailPage() {
   }, [authenticated, router]);
 
   useEffect(() => {
-    if (authenticated && user?.role !== "admin") {
+    if (authenticated && !isAdminOrAbove(user)) {
       router.push("/");
     }
   }, [authenticated, user, router]);
@@ -361,7 +361,7 @@ export default function ListDetailPage() {
     setSelectedIds([]);
   };
 
-  if (!authenticated || user?.role !== "admin") return null;
+  if (!authenticated || !isAdminOrAbove(user)) return null;
 
   if (loading) {
     return (
@@ -496,7 +496,7 @@ export default function ListDetailPage() {
                     : "Select all"}
                 </button>
               </div>
-              {user?.role === "admin" && (
+              {isAdminOrAbove(user) && (
                 <div className="flex gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => setBulkStrikeModalOpen(true)}

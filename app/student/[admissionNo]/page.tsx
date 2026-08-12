@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 import { getThreshold, hasRule, isAtOrAboveThreshold, strikeCountByCategory } from "@/lib/strikeRules";
@@ -488,7 +488,7 @@ export default function StudentDetailPage() {
             </div>
 
             {/* Action buttons */}
-            {user?.role === "admin" && (
+            {isAdminOrAbove(user) && (
               <div className="grid grid-cols-2 sm:flex sm:gap-2 gap-2 mt-4 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => setStrikeModalOpen(true)}
@@ -733,7 +733,7 @@ export default function StudentDetailPage() {
                             <span className="text-sm font-medium text-blue-900">
                               {punishmentLabels[p.Type] || p.Type}
                             </span>
-                            {user?.role === "admin" && (
+                            {isAdminOrAbove(user) && (
                               <button
                                 onClick={() =>
                                   togglePunishmentStatus(p.id, p.Status || "ongoing")

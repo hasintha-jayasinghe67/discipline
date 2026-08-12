@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 
 interface SearchedStudent {
@@ -23,7 +23,7 @@ export default function CreateListPage() {
   }, [authenticated, router]);
 
   useEffect(() => {
-    if (authenticated && user?.role !== "admin") {
+    if (authenticated && !isAdminOrAbove(user)) {
       router.push("/");
     }
   }, [authenticated, user, router]);
@@ -96,7 +96,7 @@ export default function CreateListPage() {
     }
   };
 
-  if (!authenticated || user?.role !== "admin") return null;
+  if (!authenticated || !isAdminOrAbove(user)) return null;
 
   return (
     <>

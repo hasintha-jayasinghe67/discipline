@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth, type UserInfo } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove, isSuperuser, type Role } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 
 interface DbUser {
   id: number;
   username: string;
-  password: string;
-  role: "admin" | "view-only";
+  role: Role;
   created_at: string;
 }
 
@@ -25,14 +24,14 @@ export default function UsersPage() {
   // Add user form
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [newRole, setNewRole] = useState<"admin" | "view-only">("view-only");
+  const [newRole, setNewRole] = useState<Role>("view-only");
   const [adding, setAdding] = useState(false);
 
   // Edit user modal
   const [editUser, setEditUser] = useState<DbUser | null>(null);
   const [editUsername, setEditUsername] = useState("");
   const [editPassword, setEditPassword] = useState("");
-  const [editRole, setEditRole] = useState<"admin" | "view-only">("view-only");
+  const [editRole, setEditRole] = useState<Role>("view-only");
   const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
@@ -42,20 +41,26 @@ export default function UsersPage() {
   }, [authenticated, router]);
 
   useEffect(() => {
-    if (authenticated && currentUser?.role !== "admin") {
+    if (authenticated && !isAdminOrAbove(currentUser)) {
       router.push("/");
     }
   }, [authenticated, currentUser, router]);
 
   const fetchUsers = async () => {
     setLoading(true);
-    const { data } = await supabase.from("users").select("*").order("username", { ascending: true });
+    // Never select the password column, and keep superusers out of the
+    // payload entirely when the viewer is an admin (not just hidden in the UI).
+    let query = supabase.from("users").select("id, username, role, created_at");
+    if (!isSuperuser(currentUser)) {
+      query = query.neq("role", "superuser");
+    }
+    const { data } = await query.order("username", { ascending: true });
     setUsers(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
-    if (authenticated && currentUser?.role === "admin") {
+    if (authenticated && isAdminOrAbove(currentUser)) {
       fetchUsers();
     }
   }, [authenticated, currentUser]);
@@ -95,6 +100,20 @@ export default function UsersPage() {
 
   const handleSaveEdit = async () => {
     if (!editUser) return;
+    // Prevent a superuser from changing their own role (self-demotion)
+    if (editUser.id === currentUser?.id && editRole !== editUser.role) {
+      alert("You cannot change your own role.");
+      return;
+    }
+    // Prevent demoting the last superuser in the system
+    if (
+      editUser.role === "superuser" &&
+      editRole !== "superuser" &&
+      users.filter((u) => u.role === "superuser" && u.id !== editUser.id).length === 0
+    ) {
+      alert("At least one superuser must remain in the system.");
+      return;
+    }
     setSavingEdit(true);
     try {
       const update: Partial<{ username: string; password: string; role: string }> = {
@@ -125,11 +144,13 @@ export default function UsersPage() {
       alert("You cannot delete your own account.");
       return;
     }
-    // Prevent deleting the last admin
-    if (targetUser.role === "admin") {
-      const adminCount = users.filter((u) => u.role === "admin" && u.id !== targetUser.id).length;
-      if (adminCount === 0) {
-        alert("At least one admin must remain in the system.");
+    // Prevent deleting the last superuser
+    if (targetUser.role === "superuser") {
+      const superuserCount = users.filter(
+        (u) => u.role === "superuser" && u.id !== targetUser.id
+      ).length;
+      if (superuserCount === 0) {
+        alert("At least one superuser must remain in the system.");
         return;
       }
     }
@@ -144,7 +165,12 @@ export default function UsersPage() {
   };
 
   if (!authenticated) return null;
-  if (currentUser?.role !== "admin") return null;
+  if (!isAdminOrAbove(currentUser)) return null;
+
+  // Admins see every user except superusers; superusers see everyone.
+  const visibleUsers = isSuperuser(currentUser)
+    ? users
+    : users.filter((u) => u.role !== "superuser");
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -161,10 +187,23 @@ export default function UsersPage() {
         <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Add, edit, or delete users</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {isSuperuser(currentUser)
+                ? "Add, edit, or delete users"
+                : "View all users (read-only)"}
+            </p>
           </div>
 
-          {/* Add User Form */}
+          {/* Read-only notice for admins */}
+          {!isSuperuser(currentUser) && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+              You have <span className="font-semibold">read-only</span> access. Only superusers can
+              add, edit, or delete users.
+            </div>
+          )}
+
+          {/* Add User Form (superusers only) */}
+          {isSuperuser(currentUser) && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
             <h2 className="text-sm font-semibold text-gray-900 mb-3">Add New User</h2>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
@@ -201,9 +240,10 @@ export default function UsersPage() {
                 <select
                   id="new-role"
                   value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as "admin" | "view-only")}
+                  onChange={(e) => setNewRole(e.target.value as Role)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:bg-white"
                 >
+                  <option value="superuser">Superuser</option>
                   <option value="admin">Admin</option>
                   <option value="view-only">View-only</option>
                 </select>
@@ -217,16 +257,21 @@ export default function UsersPage() {
               </button>
             </div>
           </div>
+          )}
 
           {/* Users Table */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {loading ? (
               <div className="p-8 text-center text-gray-400 text-sm animate-pulse">Loading users...</div>
-            ) : users.length === 0 ? (
+            ) : visibleUsers.length === 0 ? (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-3">👤</div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-1">No users yet</h2>
-                <p className="text-sm text-gray-500">Add the first user above.</p>
+                <p className="text-sm text-gray-500">
+                  {isSuperuser(currentUser)
+                    ? "Add the first user above."
+                    : "No users to display."}
+                </p>
               </div>
             ) : (
               <table className="w-full text-sm">
@@ -235,11 +280,13 @@ export default function UsersPage() {
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Username</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600 hidden sm:table-cell">Created</th>
-                    <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+                    {isSuperuser(currentUser) && (
+                      <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {visibleUsers.map((u) => (
                     <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-900">
                         {u.username}
@@ -249,28 +296,38 @@ export default function UsersPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                          u.role === "admin" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600"
+                          u.role === "superuser"
+                            ? "bg-purple-100 text-purple-800"
+                            : u.role === "admin"
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-gray-100 text-gray-600"
                         }`}>
-                          {u.role === "admin" ? "Admin" : "View-only"}
+                          {u.role === "superuser"
+                            ? "Superuser"
+                            : u.role === "admin"
+                            ? "Admin"
+                            : "View-only"}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{formatDate(u.created_at)}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEditModal(u)}
-                            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(u)}
-                            className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      {isSuperuser(currentUser) && (
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openEditModal(u)}
+                              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u)}
+                              className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -319,9 +376,10 @@ export default function UsersPage() {
             <select
               id="edit-role"
               value={editRole}
-              onChange={(e) => setEditRole(e.target.value as "admin" | "view-only")}
+              onChange={(e) => setEditRole(e.target.value as Role)}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
             >
+              <option value="superuser">Superuser</option>
               <option value="admin">Admin</option>
               <option value="view-only">View-only</option>
             </select>

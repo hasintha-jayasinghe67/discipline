@@ -2,13 +2,13 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import GenerateDailyReportButton from "./GenerateDailyReportButton";
 
 export default () => {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminOrAbove(user);
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
 
