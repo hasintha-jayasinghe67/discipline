@@ -9,6 +9,7 @@ import Modal from "@/components/Modal";
 import { normalizeName, searchStudents, type StudentInfo } from "@/lib/nameSearch";
 import { getThreshold, hasRule } from "@/lib/strikeRules";
 import { categoryLabels } from "@/lib/labels";
+import { fetchAllStudents } from "@/lib/students";
 import {
   addPendingBlackmark,
   removePendingBlackmark,
@@ -223,8 +224,7 @@ export default function Home() {
 
     let students = studentsCache.current;
     if (!students) {
-      const { data } = await supabase.from("students").select("*");
-      students = data || [];
+      students = await fetchAllStudents();
       studentsCache.current = students;
     }
 

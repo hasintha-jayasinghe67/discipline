@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { categoryLabels } from "@/lib/labels";
+import { fetchStudentsFor } from "@/lib/students";
 
 interface StrikeRecord {
   "Admission No": number;
@@ -41,7 +42,7 @@ export default function GenerateDailyReportButton() {
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-      const [strikesRes, blackmarksRes, studentsRes] = await Promise.all([
+      const [strikesRes, blackmarksRes] = await Promise.all([
         supabase
           .from("strikes")
           .select("*")
@@ -54,7 +55,6 @@ export default function GenerateDailyReportButton() {
           .gte("created_at", startOfDay.toISOString())
           .lt("created_at", endOfDay.toISOString())
           .order("created_at", { ascending: false }),
-        supabase.from("students").select("*"),
       ]);
 
       const strikes = (strikesRes.data || []) as StrikeRecord[];
@@ -65,9 +65,15 @@ export default function GenerateDailyReportButton() {
         return;
       }
 
+      // Load only the students referenced by today's records, not the whole table
+      const referencedStudents = await fetchStudentsFor([
+        ...strikes,
+        ...blackmarks,
+      ].map((r) => r["Admission No"]));
+
       const studentMap: Record<number, StudentInfo> = {};
-      studentsRes.data?.forEach((s) => {
-        studentMap[s["Admission No"]] = s as StudentInfo;
+      referencedStudents.forEach((s) => {
+        studentMap[s["Admission No"]] = s;
       });
 
       // Load the PDF libraries only on demand (keeps the initial bundle small).

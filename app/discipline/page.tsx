@@ -3,10 +3,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
+import ConfirmPasswordModal from "@/components/ConfirmPasswordModal";
+import DeleteButton from "@/components/DeleteButton";
 import { categoryLabels } from "@/lib/labels";
+import { fetchAllRows, fetchStudentsFor } from "@/lib/students";
 
 const punishmentLabels: Record<string, string> = {
   detention: "Detention",
@@ -31,12 +34,14 @@ interface StudentInfo {
 }
 
 interface StrikeRecord {
+  id: number;
   "Admission No": number;
   Category: string;
   created_at: string;
 }
 
 interface BlackmarkRecord {
+  id: number;
   "Admission No": number;
   Reason: string;
   issuedBy: string;
@@ -44,6 +49,7 @@ interface BlackmarkRecord {
 }
 
 interface GoldmarkRecord {
+  id: number;
   "Admission No": number;
   Reason: string;
   issuedBy: string;
@@ -61,6 +67,7 @@ interface PunishmentRecord {
 }
 
 interface CommentRecord {
+  id: number;
   "Admission No": number;
   commentor: string;
   commentText: string;
@@ -70,6 +77,7 @@ interface CommentRecord {
 interface UnifiedRecord {
   key: string;
   type: Exclude<RecordType, "all">;
+  table: "strikes" | "blackmarks" | "goldmarks" | "punishments" | "comments";
   admissionNo: number;
   student?: StudentInfo;
   label: string;
@@ -80,6 +88,9 @@ interface UnifiedRecord {
   status?: string;
   recordId?: number;
 }
+
+// How many records are revealed at once; "Load more" adds more.
+const PAGE_SIZE = 20;
 
 const tabLabels: Record<RecordType, string> = {
   all: "All Records",
@@ -161,12 +172,22 @@ export default function DisciplinePage() {
   const [punishmentSort, setPunishmentSort] = useState<"newest" | "oldest" | "type">("newest");
   const [simpleSort, setSimpleSort] = useState<"newest" | "oldest">("newest");
 
+  // Display pagination: 20 records at a time, newest first by default
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   // Clear strikes modal
   const [clearModalOpen, setClearModalOpen] = useState(false);
   const [clearPassword, setClearPassword] = useState("");
   const [clearConfirmed, setClearConfirmed] = useState(false);
   const [clearError, setClearError] = useState("");
   const [clearing, setClearing] = useState(false);
+
+  // Delete single record (superuser-only, password-confirmed)
+  const [deleteTarget, setDeleteTarget] = useState<{
+    table: "strikes" | "blackmarks" | "goldmarks" | "punishments" | "comments";
+    id: number;
+    label: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!authenticated) {
@@ -177,40 +198,60 @@ export default function DisciplinePage() {
   const fetchData = async () => {
     setLoading(true);
 
-    const [
-      strikesRes,
-      blackmarksRes,
-      goldmarksRes,
-      punishmentsRes,
-      commentsRes,
-      studentsRes,
-    ] = await Promise.all([
-      supabase.from("strikes").select("*").order("created_at", { ascending: false }),
-      supabase.from("blackmarks").select("*").order("created_at", { ascending: false }),
-      supabase.from("goldmarks").select("*").order("created_at", { ascending: false }),
-      supabase.from("punishments").select("*").order("created_at", { ascending: false }),
-      supabase.from("comments").select("*").order("created_at", { ascending: false }),
-      supabase.from("students").select("*"),
-    ]);
+    const [strikesRows, blackmarksRows, goldmarksRows, punishmentsRows, commentsRows] =
+      await Promise.all([
+        fetchAllRows<StrikeRecord>("strikes", "created_at"),
+        fetchAllRows<BlackmarkRecord>("blackmarks", "created_at"),
+        fetchAllRows<GoldmarkRecord>("goldmarks", "created_at"),
+        fetchAllRows<PunishmentRecord>("punishments", "created_at"),
+        fetchAllRows<CommentRecord>("comments", "created_at"),
+      ]);
+
+    // Load ONLY the students referenced by these records, not the whole table
+    const referencedStudents = await fetchStudentsFor([
+      ...strikesRows,
+      ...blackmarksRows,
+      ...goldmarksRows,
+      ...punishmentsRows,
+      ...commentsRows,
+    ].map((r) => r["Admission No"]));
 
     // Build student lookup map
     const map: Record<number, StudentInfo> = {};
-    studentsRes.data?.forEach((s) => {
+    referencedStudents.forEach((s) => {
       map[s["Admission No"]] = s;
     });
     setStudentMap(map);
 
-    setStrikes(strikesRes.data || []);
-    setBlackmarks(blackmarksRes.data || []);
-    setGoldmarks(goldmarksRes.data || []);
-    setPunishments(punishmentsRes.data || []);
-    setComments(commentsRes.data || []);
+    setStrikes(strikesRows);
+    setBlackmarks(blackmarksRows);
+    setGoldmarks(goldmarksRows);
+    setPunishments(punishmentsRows);
+    setComments(commentsRows);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset display pagination whenever the tab, filters, or sort change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [
+    activeTab,
+    dateFrom,
+    dateTo,
+    issuerFilter,
+    studentFilter,
+    strikeCategoryFilter,
+    blackmarkCategoryFilter,
+    punishmentTypeFilter,
+    strikeSort,
+    blackmarkSort,
+    punishmentSort,
+    simpleSort,
+  ]);
 
   const togglePunishmentStatus = async (recordId: number, currentStatus: string) => {
     const { error } = await supabase
@@ -230,6 +271,19 @@ export default function DisciplinePage() {
     setClearConfirmed(false);
     setClearError("");
     setClearModalOpen(true);
+  };
+
+  const handleDeleteRecord = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase
+      .from(deleteTarget.table)
+      .delete()
+      .eq("id", deleteTarget.id);
+    if (error) {
+      throw new Error(error.message);
+    }
+    setDeleteTarget(null);
+    await fetchData();
   };
 
   const handleClearStrikes = async () => {
@@ -276,6 +330,8 @@ export default function DisciplinePage() {
     ...strikes.map((s, i) => ({
       key: `strike-${s["Admission No"]}-${s.created_at}-${i}`,
       type: "strikes" as const,
+      table: "strikes" as const,
+      recordId: s.id,
       admissionNo: s["Admission No"],
       student: studentMap[s["Admission No"]],
       label: categoryLabels[s.Category] || s.Category,
@@ -287,6 +343,8 @@ export default function DisciplinePage() {
     ...blackmarks.map((bm, i) => ({
       key: `bm-${bm["Admission No"]}-${bm.created_at}-${i}`,
       type: "blackmarks" as const,
+      table: "blackmarks" as const,
+      recordId: bm.id,
       admissionNo: bm["Admission No"],
       student: studentMap[bm["Admission No"]],
       label: categoryLabels[bm.Reason] || bm.Reason,
@@ -298,6 +356,8 @@ export default function DisciplinePage() {
     ...goldmarks.map((gm, i) => ({
       key: `gm-${gm["Admission No"]}-${gm.created_at}-${i}`,
       type: "goldmarks" as const,
+      table: "goldmarks" as const,
+      recordId: gm.id,
       admissionNo: gm["Admission No"],
       student: studentMap[gm["Admission No"]],
       label: categoryLabels[gm.Reason] || gm.Reason,
@@ -309,6 +369,7 @@ export default function DisciplinePage() {
     ...punishments.map((p, i) => ({
       key: `p-${p.id}-${i}`,
       type: "punishments" as const,
+      table: "punishments" as const,
       admissionNo: p["Admission No"],
       student: studentMap[p["Admission No"]],
       label: punishmentLabels[p.Type] || p.Type,
@@ -322,6 +383,8 @@ export default function DisciplinePage() {
     ...comments.map((c, i) => ({
       key: `c-${c["Admission No"]}-${c.created_at}-${i}`,
       type: "comments" as const,
+      table: "comments" as const,
+      recordId: c.id,
       admissionNo: c["Admission No"],
       student: studentMap[c["Admission No"]],
       label: "Comment",
@@ -660,6 +723,19 @@ export default function DisciplinePage() {
                 >
                   {rec.status === "completed" ? "Mark ongoing" : "Mark complete"}
                 </button>
+              )}
+              {isSuperuser(user) && (
+                <DeleteButton
+                  onClick={() =>
+                    setDeleteTarget({
+                      table: rec.table,
+                      id: rec.recordId!,
+                      label: typeStyles[rec.type].label.toLowerCase(),
+                    })
+                  }
+                  label={`Delete ${typeStyles[rec.type].label.toLowerCase()}`}
+                  className="ml-auto"
+                />
               )}
             </div>
           </div>
@@ -1067,11 +1143,37 @@ export default function DisciplinePage() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {activeList.map((rec, i) => renderRecordCard(rec, i))}
+              {activeList.slice(0, visibleCount).map((rec, i) => renderRecordCard(rec, i))}
+              {visibleCount < activeList.length && (
+                <button
+                  onClick={() =>
+                    setVisibleCount((c) => Math.min(c + PAGE_SIZE, activeList.length))
+                  }
+                  className="w-full bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-3 text-sm font-medium text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all cursor-pointer"
+                >
+                  Load more records ({activeList.length - visibleCount} remaining)
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Delete record confirmation (superuser only) */}
+      <ConfirmPasswordModal
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title={`Delete ${deleteTarget?.label || "record"}`}
+        message={
+          <>
+            This will permanently delete this{" "}
+            <strong>{deleteTarget?.label || "record"}</strong> from the database.
+            This <strong>cannot be undone</strong>.
+          </>
+        }
+        confirmLabel="Delete"
+        onVerified={handleDeleteRecord}
+      />
 
       {/* Clear Strikes confirmation modal */}
       <Modal

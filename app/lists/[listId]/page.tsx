@@ -9,6 +9,7 @@ import Modal from "@/components/Modal";
 import { getThreshold, hasRule } from "@/lib/strikeRules";
 import { categoryLabels } from "@/lib/labels";
 import { addPendingBlackmark, removePendingBlackmark } from "@/lib/pendingBlackmarks";
+import { fetchStudentsFor } from "@/lib/students";
 
 interface StudentInfo {
   "Admission No": number;
@@ -100,12 +101,9 @@ export default function ListDetailPage() {
 
     // Fetch full student info for each admission number in the list
     if (foundList.students.length > 0) {
-      const { data: studentsData } = await supabase
-        .from("students")
-        .select()
-        .in("Admission No", foundList.students);
+      const studentsData = await fetchStudentsFor(foundList.students);
 
-      setStudents(studentsData || []);
+      setStudents(studentsData);
     } else {
       setStudents([]);
     }
@@ -544,14 +542,15 @@ export default function ListDetailPage() {
                     onClick={
                       selectMode
                         ? () => toggleSelectStudent(student["Admission No"])
-                        : undefined
+                        : () => router.push(`/student/${student["Admission No"]}`)
                     }
-                    className={`bg-white rounded-xl shadow-sm border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all ${
+                    title={selectMode ? undefined : "View student profile"}
+                    className={`bg-white rounded-xl shadow-sm border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all group ${
                       selectMode
                         ? isSelected
                           ? "border-indigo-400 ring-2 ring-indigo-200 cursor-pointer"
                           : "border-gray-100 hover:border-indigo-300 cursor-pointer"
-                        : "border-gray-100"
+                        : "border-gray-100 hover:border-indigo-300 hover:shadow-md cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -574,7 +573,7 @@ export default function ListDetailPage() {
                         {student["Name with Initials"].charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
                           {student["Name with Initials"]}
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-500">
@@ -587,7 +586,10 @@ export default function ListDetailPage() {
                     </div>
                     {!selectMode && (
                       <button
-                        onClick={() => handleRemoveStudent(student["Admission No"])}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveStudent(student["Admission No"]);
+                        }}
                         disabled={removingId === student["Admission No"]}
                         className="shrink-0 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs sm:text-sm font-medium rounded-lg transition-all disabled:opacity-50 flex items-center gap-1.5"
                       >

@@ -3,9 +3,11 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
+import ConfirmPasswordModal from "@/components/ConfirmPasswordModal";
+import DeleteButton from "@/components/DeleteButton";
 import { getThreshold, hasRule, isAtOrAboveThreshold, strikeCountByCategory } from "@/lib/strikeRules";
 import {
   addPendingBlackmark,
@@ -35,17 +37,20 @@ const punishmentLabels: Record<string, string> = {
 };
 
 interface Strike {
+  id: number;
   Category: string;
   created_at?: string;
 }
 
 interface Blackmark {
+  id: number;
   Reason: string;
   issuedBy: string;
   created_at?: string;
 }
 
 interface Goldmark {
+  id: number;
   Reason: string;
   issuedBy: string;
   created_at?: string;
@@ -109,6 +114,13 @@ export default function StudentDetailPage() {
   const [punishmentAssignedBy, setPunishmentAssignedBy] = useState("");
   const [commentor, setCommentor] = useState("");
   const [commentText, setCommentText] = useState("");
+
+  // Delete record (superuser-only, password-confirmed)
+  const [deleteTarget, setDeleteTarget] = useState<{
+    table: "strikes" | "blackmarks" | "goldmarks" | "punishments" | "comments";
+    id: number;
+    label: string;
+  } | null>(null);
 
   // Strike → blackmark threshold feature
   const [pendingBlackmarks, setPendingBlackmarks] = useState<Set<string>>(
@@ -359,6 +371,19 @@ export default function StudentDetailPage() {
       return;
     }
     fetchData();
+  };
+
+  const handleDeleteRecord = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase
+      .from(deleteTarget.table)
+      .delete()
+      .eq("id", deleteTarget.id);
+    if (error) {
+      throw new Error(error.message);
+    }
+    setDeleteTarget(null);
+    await fetchData();
   };
 
   const handleAddComment = async () => {
@@ -629,6 +654,18 @@ export default function StudentDetailPage() {
                             {count}/{threshold}
                           </span>
                         )}
+                        {isSuperuser(user) && (
+                          <DeleteButton
+                            onClick={() =>
+                              setDeleteTarget({
+                                table: "strikes",
+                                id: strike.id,
+                                label: "strike",
+                              })
+                            }
+                            label="Delete strike"
+                          />
+                        )}
                       </div>
                     );
                   })}
@@ -665,6 +702,18 @@ export default function StudentDetailPage() {
                             Issued by: {bm.issuedBy}
                           </div>
                         </div>
+                        {isSuperuser(user) && (
+                          <DeleteButton
+                            onClick={() =>
+                              setDeleteTarget({
+                                table: "blackmarks",
+                                id: bm.id,
+                                label: "blackmark",
+                              })
+                            }
+                            label="Delete blackmark"
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
@@ -701,6 +750,18 @@ export default function StudentDetailPage() {
                             Issued by: {gm.issuedBy}
                           </div>
                         </div>
+                        {isSuperuser(user) && (
+                          <DeleteButton
+                            onClick={() =>
+                              setDeleteTarget({
+                                table: "goldmarks",
+                                id: gm.id,
+                                label: "gold mark",
+                              })
+                            }
+                            label="Delete gold mark"
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
@@ -761,6 +822,18 @@ export default function StudentDetailPage() {
                               })}
                           </div>
                         </div>
+                        {isSuperuser(user) && (
+                          <DeleteButton
+                            onClick={() =>
+                              setDeleteTarget({
+                                table: "punishments",
+                                id: p.id,
+                                label: "punishment",
+                              })
+                            }
+                            label="Delete punishment"
+                          />
+                        )}
                       </div>
                     </div>
                   ))}
@@ -806,6 +879,19 @@ export default function StudentDetailPage() {
                           })}
                         </span>
                       )}
+                      {isSuperuser(user) && (
+                        <DeleteButton
+                          onClick={() =>
+                            setDeleteTarget({
+                              table: "comments",
+                              id: comment.id,
+                              label: "comment",
+                            })
+                          }
+                          label="Delete comment"
+                          className="ml-2"
+                        />
+                      )}
                     </div>
                     <p className="text-sm text-violet-800 ml-8">
                       {comment.commentText}
@@ -817,6 +903,22 @@ export default function StudentDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete record confirmation (superuser only) */}
+      <ConfirmPasswordModal
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title={`Delete ${deleteTarget?.label || "record"}`}
+        message={
+          <>
+            This will permanently delete this{" "}
+            <strong>{deleteTarget?.label || "record"}</strong> from the database.
+            This <strong>cannot be undone</strong>.
+          </>
+        }
+        confirmLabel="Delete"
+        onVerified={handleDeleteRecord}
+      />
 
       {/* Auto-blackmark threshold prompt */}
       <Modal
