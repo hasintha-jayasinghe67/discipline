@@ -354,17 +354,17 @@ export default function Home() {
   return (
     <>
       <Header />
-      <div className="p-4 sm:p-6 bg-gray-50">
+      <div className="page-shell">
         <div className="max-w-2xl mx-auto flex flex-col gap-3">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+          <div className="card-solid p-3">
             {/* Search mode tabs */}
-            <div className="flex gap-1.5 mb-3 pb-3 border-b border-gray-100">
+            <div className="flex gap-1.5 mb-3 pb-3 border-b border-slate-100">
               <button
                 onClick={() => setActiveTab("admission")}
                 className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all cursor-pointer ${
                   activeTab === "admission"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
                 }`}
               >
                 Admission No
@@ -373,8 +373,8 @@ export default function Home() {
                 onClick={() => setActiveTab("name")}
                 className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all cursor-pointer ${
                   activeTab === "name"
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
                 }`}
               >
                 Name
@@ -385,7 +385,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="relative flex-1">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -410,11 +410,11 @@ export default function Home() {
                       }
                     }}
                     placeholder="Enter Admission No"
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
                   />
                 </div>
                 <button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm"
+                  className="btn-primary px-5 py-2.5"
                   onClick={fetchStudentData}
                 >
                   Search
@@ -424,7 +424,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="relative flex-1">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -449,12 +449,12 @@ export default function Home() {
                       }
                     }}
                     placeholder="Enter student name (min 2 letters)"
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
                   />
                 </div>
                 <button
                   disabled={searching || normalizeName(nameQuery).length < 2}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm"
+                  className="btn-primary px-5 py-2.5 disabled:opacity-55"
                   onClick={handleNameSearch}
                 >
                   {searching ? "..." : "Search"}
@@ -465,16 +465,16 @@ export default function Home() {
 
           {activeTab === "admission" ? (
             notFound ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+              <div className="card-solid p-6 sm:p-8 text-center">
                 <div className="text-4xl sm:text-5xl mb-3">🔍</div>
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
+                <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">
                   Student Not Found
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   No student found with Admission No:{" "}
-                  <span className="font-semibold text-gray-700">{name}</span>
+                  <span className="font-semibold text-slate-700">{name}</span>
                 </p>
-                <p className="text-xs text-gray-400 italic mt-3">
+                <p className="text-xs text-slate-400 italic mt-3">
                   {"He lied to you, you're not scary, you're a lolla"}
                 </p>
               </div>
@@ -500,44 +500,44 @@ export default function Home() {
           ) : (
             <>
               {showTooShortHint && !nameSearched && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-                  <p className="text-sm text-gray-500">
+                <div className="card-solid p-6 text-center">
+                  <p className="text-sm text-slate-500">
                     Type at least 2 letters to search.
                   </p>
                 </div>
               )}
               {nameSearched && searching && (
                 <div className="flex items-center justify-center py-12">
-                  <div className="text-gray-400 text-base animate-pulse">
+                  <div className="text-slate-400 text-base animate-pulse">
                     Searching students...
                   </div>
                 </div>
               )}
               {nameSearched && !searching && nameTooShort && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-                  <p className="text-sm text-gray-500">
+                <div className="card-solid p-6 text-center">
+                  <p className="text-sm text-slate-500">
                     Type at least 2 letters to search.
                   </p>
                 </div>
               )}
               {nameSearched && !searching && !nameTooShort && nameResults.length === 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+                <div className="card-solid p-6 sm:p-8 text-center">
                   <div className="text-4xl sm:text-5xl mb-3">🔍</div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">
                     Student Not Found
                   </h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-slate-500">
                     No student found with name:{" "}
-                    <span className="font-semibold text-gray-700">{nameQuery}</span>
+                    <span className="font-semibold text-slate-700">{nameQuery}</span>
                   </p>
-                  <p className="text-xs text-gray-400 italic mt-3">
+                  <p className="text-xs text-slate-400 italic mt-3">
                     {"He lied to you, you're not scary, you're a lolla"}
                   </p>
                 </div>
               )}
               {nameSearched && !searching && !nameTooShort && nameResults.length > 0 && (
                 <div className="flex flex-col gap-3">
-                  <div className="text-xs text-gray-500 font-medium px-1">
+                  <div className="text-xs text-slate-500 font-medium px-1">
                     {countLabel}
                   </div>
                   {nameResults.slice(0, visibleCount).map((result) => {
@@ -572,7 +572,7 @@ export default function Home() {
                           Math.min(c + NAME_RESULTS_PAGE, nameResults.length)
                         )
                       }
-                      className="w-full bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-3 text-sm font-medium text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all cursor-pointer"
+                      className="w-full card-solid px-5 py-3 text-sm font-medium text-teal-600 hover:border-teal-300 hover:bg-teal-50 transition-all cursor-pointer"
                     >
                       Load more students ({nameResults.length - visibleCount}{" "}
                       remaining)
@@ -584,9 +584,9 @@ export default function Home() {
           )}
         </div>
         {/* Punishments section commented out for now */}
-        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        {/* <div className="card-solid p-5">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-slate-900">
               Punishments ongoing
             </h1>
             <button className="bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5">
@@ -615,9 +615,9 @@ export default function Home() {
         }}
         title={`Add black mark to student ${modalName}`}
       >
-        <div className="text-sm text-gray-500 mb-3">
+        <div className="text-sm text-slate-500 mb-3">
           Adding black mark to student{" "}
-          <span className="font-semibold text-gray-700">{modalName}</span>
+          <span className="font-semibold text-slate-700">{modalName}</span>
         </div>
         <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-4">
           <span className="text-sm text-rose-700 font-medium">
@@ -633,7 +633,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="blackmark-reason"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Reason
             </label>
@@ -642,7 +642,7 @@ export default function Home() {
               id="blackmark-reason"
               value={blackmarkReason}
               onChange={(e) => setBlackmarkReason(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
             >
               <option value="grooming">Personal Grooming</option>
               <option value="repeated-punish">Repeated punishment</option>
@@ -656,7 +656,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="issuer"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Issued By
             </label>
@@ -666,11 +666,11 @@ export default function Home() {
               type="text"
               id="issuer"
               placeholder="Enter your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
@@ -708,7 +708,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
             onClick={() => setBlackmarkModalOpen(false)}
           >
             Discard
@@ -722,14 +722,14 @@ export default function Home() {
         }}
         title={`Add strike to student ${modalName}`}
       >
-        <div className="text-sm text-gray-500 mb-4">
+        <div className="text-sm text-slate-500 mb-4">
           Adding strike to student{" "}
-          <span className="font-semibold text-gray-700">{modalName}</span>
+          <span className="font-semibold text-slate-700">{modalName}</span>
         </div>
         <div>
           <label
             htmlFor="strike-category"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-slate-700 mb-1"
           >
             Category
           </label>
@@ -738,7 +738,7 @@ export default function Home() {
             id="strike-category"
             value={strikeType}
             onChange={(e) => setStrikeType(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
           >
             <option value="grooming">Personal Grooming</option>
             <option value="repeated-punish">Repeated punishment</option>
@@ -749,7 +749,7 @@ export default function Home() {
             <option value="clubbing">Clubbing</option>
           </select>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
@@ -792,7 +792,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
             onClick={() => setStrikeModalOpen(false)}
           >
             Discard
@@ -822,7 +822,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="prompt-issued-by"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Issued By
             </label>
@@ -833,10 +833,10 @@ export default function Home() {
               onChange={(e) => setPromptIssuedBy(e.target.value)}
               placeholder="Enter your name"
               autoFocus
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
-          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+          <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={confirmBlackmarkPrompt}
               disabled={promptBusy || !promptIssuedBy.trim()}
@@ -847,7 +847,7 @@ export default function Home() {
             <button
               onClick={dismissBlackmarkPrompt}
               disabled={promptBusy}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             >
               Dismiss
             </button>
@@ -861,9 +861,9 @@ export default function Home() {
         onClose={() => setGoldMarkModalOpen(false)}
         title={`Add gold mark to student ${modalName}`}
       >
-        <div className="text-sm text-gray-500 mb-3">
+        <div className="text-sm text-slate-500 mb-3">
           Adding gold mark to student{" "}
-          <span className="font-semibold text-gray-700">{modalName}</span>
+          <span className="font-semibold text-slate-700">{modalName}</span>
         </div>
         <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
           <span className="text-sm text-emerald-700 font-medium">
@@ -879,7 +879,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="goldmark-reason"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Reason
             </label>
@@ -887,7 +887,7 @@ export default function Home() {
               id="goldmark-reason"
               value={goldMarkReason}
               onChange={(e) => setGoldMarkReason(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
             >
               <option value="good-behavior">Good Behavior</option>
               <option value="giving-back">Giving Back to College</option>
@@ -897,7 +897,7 @@ export default function Home() {
           <div>
             <label
               htmlFor="goldmark-issuer"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Issued By
             </label>
@@ -907,11 +907,11 @@ export default function Home() {
               type="text"
               id="goldmark-issuer"
               placeholder="Enter your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
@@ -933,7 +933,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
             onClick={() => setGoldMarkModalOpen(false)}
           >
             Discard
@@ -947,15 +947,15 @@ export default function Home() {
         onClose={() => setCommentModalOpen(false)}
         title={`Add comment for student ${modalName}`}
       >
-        <div className="text-sm text-gray-500 mb-3">
+        <div className="text-sm text-slate-500 mb-3">
           Adding comment for student{" "}
-          <span className="font-semibold text-gray-700">{modalName}</span>
+          <span className="font-semibold text-slate-700">{modalName}</span>
         </div>
         <div className="flex flex-col gap-3">
           <div>
             <label
               htmlFor="commentor"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Commentor
             </label>
@@ -965,13 +965,13 @@ export default function Home() {
               type="text"
               id="commentor"
               placeholder="Your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
           <div>
             <label
               htmlFor="comment-text"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Comment
             </label>
@@ -981,11 +981,11 @@ export default function Home() {
               id="comment-text"
               placeholder="Write your comment..."
               rows={3}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white resize-none"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
             onClick={async () => {
@@ -1002,7 +1002,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
             onClick={() => setCommentModalOpen(false)}
           >
             Discard

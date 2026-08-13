@@ -2,7 +2,11 @@
 
 :root {
   --background: #f8fafc;
-  --foreground: #1e293b;
+  --foreground: #0f172a;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --surface: #ffffff;
+  --border: rgba(148, 163, 184, 0.35);
 }
 
 @theme inline {
@@ -15,40 +19,116 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Center modal dialogs properly */
+/* Page layout */
+.page-shell {
+  min-height: 100vh;
+  padding: 1rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(13, 148, 136, 0.08), transparent),
+    linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
+@media (min-width: 640px) {
+  .page-shell {
+    padding: 1.5rem;
+  }
+}
+
+/* Cards & surfaces */
+.card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.card-solid {
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+/* Form controls */
+.input-field {
+  width: 100%;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  color: #0f172a;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.input-field::placeholder {
+  color: #94a3b8;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #2dd4bf;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+  color: #ffffff;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(13, 148, 136, 0.2), 0 4px 12px rgba(13, 148, 136, 0.15);
+  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Modals */
 dialog[open] {
   margin: auto;
+  border: none;
+  border-radius: 1rem;
+  animation: modal-in 0.2s ease-out;
 }
 
 dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
 }
 
-/* Smooth transitions for interactive elements */
-button, input, select {
-  transition: all 0.2s ease;
-}
-
-@media (hover: hover) {
-  button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
   }
-
-  button:active {
-    transform: translateY(0);
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-input:focus, select:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-/* Mobile header menu slide-down */
+/* Mobile header menu */
 @keyframes menu-in {
   from {
     opacity: 0;
@@ -58,4 +138,21 @@ input:focus, select:focus {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Subtle lift only on explicit interactive cards */
+@media (hover: hover) {
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 12px rgba(15, 23, 42, 0.08),
+      0 8px 24px rgba(15, 23, 42, 0.06);
+  }
+}
+
+button,
+input,
+select {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease, opacity 0.15s ease;
 }

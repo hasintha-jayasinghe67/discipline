@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
+import GenerateReportModal from "@/components/GenerateReportModal";
 import ConfirmPasswordModal from "@/components/ConfirmPasswordModal";
 import DeleteButton from "@/components/DeleteButton";
 import { categoryLabels } from "@/lib/labels";
@@ -177,6 +178,7 @@ export default function DisciplinePage() {
 
   // Clear strikes modal
   const [clearModalOpen, setClearModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const [clearPassword, setClearPassword] = useState("");
   const [clearConfirmed, setClearConfirmed] = useState(false);
   const [clearError, setClearError] = useState("");
@@ -619,9 +621,9 @@ export default function DisciplinePage() {
       label: "Students",
       count: studentsWithRecords,
       subline: "with records",
-      sublineClass: "text-gray-400",
-      chipClass: "bg-indigo-100 text-indigo-600",
-      hoverClass: "hover:border-indigo-300",
+      sublineClass: "text-slate-400",
+      chipClass: "bg-teal-100 text-teal-600",
+      hoverClass: "hover:border-teal-300",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -637,7 +639,7 @@ export default function DisciplinePage() {
     return (
       <div
         key={rec.key}
-        className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5"
+        className="card-solid p-4 sm:p-5"
       >
         <div className="flex items-start gap-3">
           <span
@@ -655,15 +657,15 @@ export default function DisciplinePage() {
               </span>
               <a
                 href={`/student/${rec.admissionNo}`}
-                className="text-sm font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
+                className="text-sm font-semibold text-slate-900 hover:text-teal-600 transition-colors"
               >
                 {rec.student?.["Name with Initials"] || `Student #${rec.admissionNo}`}
               </a>
-              <span className="text-xs text-gray-400">#{rec.admissionNo}</span>
+              <span className="text-xs text-slate-400">#{rec.admissionNo}</span>
             </div>
             {/* Class + House */}
             {rec.student && (
-              <div className="text-xs text-gray-500 mt-0.5">
+              <div className="text-xs text-slate-500 mt-0.5">
                 {rec.student.Class}
                 {rec.student["School House"] && (
                   <>
@@ -693,7 +695,7 @@ export default function DisciplinePage() {
               )}
             </div>
             {/* Detail text (punishment reason / comment body) */}
-            {rec.detail && <p className="text-sm text-gray-700 mt-1.5">{rec.detail}</p>}
+            {rec.detail && <p className="text-sm text-slate-700 mt-1.5">{rec.detail}</p>}
             {/* Issuer + date */}
             <div className="flex items-center gap-3 mt-1.5 text-xs flex-wrap">
               {rec.issuer && (
@@ -705,7 +707,7 @@ export default function DisciplinePage() {
                 </span>
               )}
               {rec.createdAt && (
-                <span className="text-gray-400 flex items-center gap-1">
+                <span className="text-slate-400 flex items-center gap-1">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -757,24 +759,45 @@ export default function DisciplinePage() {
   return (
     <>
       <Header />
-      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="page-shell">
         <div className="max-w-6xl mx-auto flex flex-col gap-4 sm:gap-6">
           {/* Page header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                 Discipline Records
               </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-slate-500 mt-0.5">
                 All strikes, black marks, gold marks, punishments, and comments across students
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isAdminOrAbove(user) && (
                 <button
+                  onClick={() => setReportModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 px-3.5 py-2 rounded-lg shadow-sm transition-all"
+                >
+                  <svg
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Generate Report
+                </button>
+              )}
+              {isAdminOrAbove(user) && (
+                <button
                   onClick={openClearModal}
                   disabled={strikes.length === 0}
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed px-3.5 py-2 rounded-lg shadow-sm transition-all"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 disabled:bg-gray-100 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed px-3.5 py-2 rounded-lg shadow-sm transition-all"
                 >
                   <svg
                     className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -794,7 +817,7 @@ export default function DisciplinePage() {
               )}
               <a
                 href="/"
-                className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors w-fit"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
               >
                 <svg
                   className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -820,17 +843,17 @@ export default function DisciplinePage() {
               <button
                 key={card.label}
                 onClick={() => setActiveTab(card.tab)}
-                className={`group bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left transition-all cursor-pointer ${card.hoverClass} hover:shadow-md`}
+                className={`group card-solid p-4 text-left transition-all cursor-pointer hover-lift ${card.hoverClass}`}
               >
                 <div
                   className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${card.chipClass}`}
                 >
                   {card.icon}
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-3">
+                <div className="text-2xl sm:text-3xl font-bold text-slate-900 mt-3">
                   {loading ? "–" : card.count}
                 </div>
-                <div className="text-xs text-gray-500 font-medium mt-0.5">
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
                   {card.label}
                 </div>
                 {card.subline && (
@@ -843,9 +866,9 @@ export default function DisciplinePage() {
           </div>
 
           {/* Filter bar */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
+          <div className="card-solid p-4 sm:p-5 flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600 font-medium shrink-0">
+              <div className="flex items-center gap-2 text-sm text-slate-600 font-medium shrink-0">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -853,7 +876,7 @@ export default function DisciplinePage() {
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 flex-1">
                 <div className="flex items-center gap-2">
-                  <label htmlFor="date-from" className="text-xs text-gray-500 shrink-0">
+                  <label htmlFor="date-from" className="text-xs text-slate-500 shrink-0">
                     From
                   </label>
                   <input
@@ -861,11 +884,11 @@ export default function DisciplinePage() {
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="flex-1 sm:w-auto bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:bg-white"
+                    className="flex-1 sm:w-auto bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-teal-400 focus:bg-white"
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <label htmlFor="date-to" className="text-xs text-gray-500 shrink-0">
+                  <label htmlFor="date-to" className="text-xs text-slate-500 shrink-0">
                     To
                   </label>
                   <input
@@ -873,16 +896,16 @@ export default function DisciplinePage() {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="flex-1 sm:w-auto bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-indigo-400 focus:bg-white"
+                    className="flex-1 sm:w-auto bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-teal-400 focus:bg-white"
                   />
                 </div>
               </div>
             </div>
-            <div className="border-t border-gray-100 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="border-t border-slate-100 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Student search */}
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -899,13 +922,13 @@ export default function DisciplinePage() {
                   onChange={(e) => setStudentFilter(e.target.value)}
                   type="text"
                   placeholder="Search by student name or admission no..."
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
                 />
               </div>
               {/* Issuer search */}
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -922,7 +945,7 @@ export default function DisciplinePage() {
                   onChange={(e) => setIssuerFilter(e.target.value)}
                   type="text"
                   placeholder="Search by who assigned / issued..."
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
                 />
                 {filtersActive && (
                   <button
@@ -932,7 +955,7 @@ export default function DisciplinePage() {
                       setIssuerFilter("");
                       setStudentFilter("");
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium text-teal-600 hover:text-teal-800 transition-colors"
                   >
                     Clear
                   </button>
@@ -950,8 +973,8 @@ export default function DisciplinePage() {
                   onClick={() => setActiveTab(tab)}
                   className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                     activeTab === tab
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "bg-white border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600"
+                      ? "bg-teal-600 text-white shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600"
                   }`}
                 >
                   {tabLabels[tab]}
@@ -960,7 +983,7 @@ export default function DisciplinePage() {
                       className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                         activeTab === tab
                           ? "bg-white/20 text-white"
-                          : "bg-gray-100 text-gray-500"
+                          : "bg-gray-100 text-slate-500"
                       }`}
                     >
                       {tabCounts[tab]}
@@ -973,14 +996,14 @@ export default function DisciplinePage() {
 
           {/* Per-tab filter + sort row */}
           {!loading && activeTab !== "all" && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="card-solid p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               {/* Type-specific filter */}
               {activeTab === "strikes" && strikeCategories.length > 0 && (
                 <div className="relative w-full sm:w-56">
                   <select
                     value={strikeCategoryFilter}
                     onChange={(e) => setStrikeCategoryFilter(e.target.value)}
-                    className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-xs text-gray-700 focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-300 cursor-pointer"
+                    className="w-full appearance-none bg-slate-50 border border-slate-200/70 rounded-xl pl-3 pr-8 py-2 text-xs text-slate-700 focus:border-amber-400 focus:bg-white focus:ring-1 focus:ring-amber-300 cursor-pointer"
                   >
                     <option value="all">All categories</option>
                     {strikeCategories.map((cat) => (
@@ -990,7 +1013,7 @@ export default function DisciplinePage() {
                     ))}
                   </select>
                   <svg
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1004,7 +1027,7 @@ export default function DisciplinePage() {
                   <select
                     value={blackmarkCategoryFilter}
                     onChange={(e) => setBlackmarkCategoryFilter(e.target.value)}
-                    className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-xs text-gray-700 focus:border-rose-400 focus:bg-white focus:ring-1 focus:ring-rose-300 cursor-pointer"
+                    className="w-full appearance-none bg-slate-50 border border-slate-200/70 rounded-xl pl-3 pr-8 py-2 text-xs text-slate-700 focus:border-rose-400 focus:bg-white focus:ring-1 focus:ring-rose-300 cursor-pointer"
                   >
                     <option value="all">All categories</option>
                     {blackmarkCategories.map((cat) => (
@@ -1014,7 +1037,7 @@ export default function DisciplinePage() {
                     ))}
                   </select>
                   <svg
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1028,7 +1051,7 @@ export default function DisciplinePage() {
                   <select
                     value={punishmentTypeFilter}
                     onChange={(e) => setPunishmentTypeFilter(e.target.value)}
-                    className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-xs text-gray-700 focus:border-blue-400 focus:bg-white focus:ring-1 focus:ring-blue-300 cursor-pointer"
+                    className="w-full appearance-none bg-slate-50 border border-slate-200/70 rounded-xl pl-3 pr-8 py-2 text-xs text-slate-700 focus:border-blue-400 focus:bg-white focus:ring-1 focus:ring-blue-300 cursor-pointer"
                   >
                     <option value="all">All punishment types</option>
                     {punishmentTypes.map((type) => (
@@ -1038,7 +1061,7 @@ export default function DisciplinePage() {
                     ))}
                   </select>
                   <svg
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1049,7 +1072,7 @@ export default function DisciplinePage() {
               )}
               {/* Sort controls */}
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 text-xs">
+                <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 text-xs">
                   <button
                     onClick={() =>
                       activeTab === "strikes"
@@ -1065,8 +1088,8 @@ export default function DisciplinePage() {
                       (activeTab === "blackmarks" && blackmarkSort === "newest") ||
                       (activeTab === "punishments" && punishmentSort === "newest") ||
                       ((activeTab === "goldmarks" || activeTab === "comments") && simpleSort === "newest")
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-teal-600 text-white"
+                        : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
                     Newest
@@ -1086,8 +1109,8 @@ export default function DisciplinePage() {
                       (activeTab === "blackmarks" && blackmarkSort === "oldest") ||
                       (activeTab === "punishments" && punishmentSort === "oldest") ||
                       ((activeTab === "goldmarks" || activeTab === "comments") && simpleSort === "oldest")
-                        ? "bg-indigo-600 text-white"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-teal-600 text-white"
+                        : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
                     Oldest
@@ -1105,15 +1128,15 @@ export default function DisciplinePage() {
                         (activeTab === "strikes" && strikeSort === "category") ||
                         (activeTab === "blackmarks" && blackmarkSort === "category") ||
                         (activeTab === "punishments" && punishmentSort === "type")
-                          ? "bg-indigo-600 text-white"
-                          : "text-gray-500 hover:text-gray-700"
+                          ? "bg-teal-600 text-white"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
                       {activeTab === "punishments" ? "Type" : "Category"}
                     </button>
                   )}
                 </div>
-                <span className="text-xs text-gray-400 font-medium bg-gray-50 px-2.5 py-1 rounded-full shrink-0">
+                <span className="text-xs text-slate-400 font-medium bg-gray-50 px-2.5 py-1 rounded-full shrink-0">
                   {activeList.length} record{activeList.length !== 1 ? "s" : ""}
                 </span>
               </div>
@@ -1123,17 +1146,17 @@ export default function DisciplinePage() {
           {/* Records list */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="text-gray-400 text-base sm:text-lg animate-pulse">
+              <div className="text-slate-400 text-base sm:text-lg animate-pulse">
                 Loading discipline records...
               </div>
             </div>
           ) : activeList.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="card-solid p-8 text-center">
               <div className="text-4xl sm:text-5xl mb-3">📋</div>
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">
                 {showFilteredEmpty ? filteredEmptyMessage : emptyMessage}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 {showFilteredEmpty
                   ? "Try adjusting the date range, student, issuer, or category filters."
                   : activeTab === "all"
@@ -1149,7 +1172,7 @@ export default function DisciplinePage() {
                   onClick={() =>
                     setVisibleCount((c) => Math.min(c + PAGE_SIZE, activeList.length))
                   }
-                  className="w-full bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-3 text-sm font-medium text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all cursor-pointer"
+                  className="w-full card-solid px-5 py-3 text-sm font-medium text-teal-600 hover:border-teal-300 hover:bg-teal-50 transition-all cursor-pointer"
                 >
                   Load more records ({activeList.length - visibleCount} remaining)
                 </button>
@@ -1175,6 +1198,12 @@ export default function DisciplinePage() {
         onVerified={handleDeleteRecord}
       />
 
+      {/* Generate report modal (admin only) */}
+      <GenerateReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+      />
+
       {/* Clear Strikes confirmation modal */}
       <Modal
         isOpen={clearModalOpen}
@@ -1187,7 +1216,7 @@ export default function DisciplinePage() {
             database. This <strong>cannot be undone</strong>.
           </div>
           <div>
-            <label htmlFor="clear-password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="clear-password" className="block text-sm font-medium text-slate-700 mb-1">
               Enter your password to confirm
             </label>
             <input
@@ -1197,10 +1226,10 @@ export default function DisciplinePage() {
               onChange={(e) => setClearPassword(e.target.value)}
               placeholder="Your password"
               autoFocus
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-red-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-red-400 focus:bg-white"
             />
           </div>
-          <label className="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+          <label className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">
             <input
               type="checkbox"
               checked={clearConfirmed}
@@ -1216,7 +1245,7 @@ export default function DisciplinePage() {
               {clearError}
             </div>
           )}
-          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+          <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={handleClearStrikes}
               disabled={clearing || !clearPassword.trim() || !clearConfirmed}
@@ -1227,7 +1256,7 @@ export default function DisciplinePage() {
             <button
               onClick={() => setClearModalOpen(false)}
               disabled={clearing}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             >
               Cancel
             </button>

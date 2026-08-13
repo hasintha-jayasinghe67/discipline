@@ -406,8 +406,8 @@ export default function StudentDetailPage() {
     return (
       <>
         <Header />
-        <div className="p-4 sm:p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-          <div className="text-gray-400 text-base sm:text-lg animate-pulse">
+        <div className="page-shell flex items-center justify-center">
+          <div className="text-slate-400 text-base sm:text-lg animate-pulse">
             Loading student data...
           </div>
         </div>
@@ -419,15 +419,15 @@ export default function StudentDetailPage() {
     return (
       <>
         <Header />
-        <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-          <div className="max-w-2xl mx-auto mt-8 sm:mt-12 bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+        <div className="page-shell">
+          <div className="max-w-2xl mx-auto mt-8 sm:mt-12 card-solid p-6 sm:p-8 text-center">
             <div className="text-4xl sm:text-6xl mb-4">🔍</div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">
               Student Not Found
             </h2>
-            <p className="text-sm sm:text-base text-gray-500">
+            <p className="text-sm sm:text-base text-slate-500">
               No student found with Admission No:{" "}
-              <span className="font-semibold text-gray-700">{admissionNo}</span>
+              <span className="font-semibold text-slate-700">{admissionNo}</span>
             </p>
           </div>
         </div>
@@ -438,12 +438,12 @@ export default function StudentDetailPage() {
   return (
     <>
       <Header />
-      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="page-shell">
         <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6">
           {/* Back link */}
           <a
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors w-fit"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
           >
             <svg
               className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -461,16 +461,16 @@ export default function StudentDetailPage() {
             Back to search
           </a>
           {/* Student Info Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="card-solid p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 mb-4 text-center sm:text-left">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center text-white text-lg sm:text-xl font-bold shrink-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-lg sm:text-xl font-bold shrink-0">
                 {studentName.charAt(0)}
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                   {studentName}
                 </h1>
-                <p className="text-gray-500 flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1 mt-1 text-xs sm:text-sm">
+                <p className="text-slate-500 flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1 mt-1 text-xs sm:text-sm">
                   <span>Admission: {admissionNo}</span>
                   <span className="text-gray-300 hidden sm:inline">|</span>
                   <span className="hidden sm:inline">{Class}</span>
@@ -478,14 +478,14 @@ export default function StudentDetailPage() {
                   <span className="hidden sm:inline">{house}</span>
                 </p>
                 {/* Mobile-only class/house row */}
-                <p className="text-gray-500 flex items-center justify-center sm:hidden gap-2 mt-1 text-xs">
+                <p className="text-slate-500 flex items-center justify-center sm:hidden gap-2 mt-1 text-xs">
                   <span>{Class}</span>
                   <span className="text-gray-300">•</span>
                   <span>{house}</span>
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-4 border-t border-slate-100">
               <div className="bg-amber-50 border border-amber-200 rounded-lg px-2 sm:px-4 py-2 sm:py-3 text-center">
                 <div className="text-lg sm:text-2xl font-bold text-amber-600">
                   {strikes.length}
@@ -514,7 +514,7 @@ export default function StudentDetailPage() {
 
             {/* Action buttons */}
             {isAdminOrAbove(user) && (
-              <div className="grid grid-cols-2 sm:flex sm:gap-2 gap-2 mt-4 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-2 sm:flex sm:gap-2 gap-2 mt-4 pt-4 border-t border-slate-100">
                 <button
                   onClick={() => setStrikeModalOpen(true)}
                   className="sm:flex-1 hover:cursor-pointer bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg shadow-sm transition-all"
@@ -576,8 +576,8 @@ export default function StudentDetailPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Strikes List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="card-solid p-5">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
                 Strikes
                 {pendingBlackmarks.size > 0 && (
@@ -590,7 +590,7 @@ export default function StudentDetailPage() {
                 )}
               </h2>
               {strikes.length === 0 ? (
-                <p className="text-gray-400 text-sm py-4 text-center">
+                <p className="text-slate-400 text-sm py-4 text-center">
                   No strikes recorded
                 </p>
               ) : (
@@ -674,13 +674,13 @@ export default function StudentDetailPage() {
             </div>
 
             {/* Blackmarks List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="card-solid p-5">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 bg-rose-400 rounded-full"></span>
                 Blackmarks
               </h2>
               {blackmarks.length === 0 ? (
-                <p className="text-gray-400 text-sm py-4 text-center">
+                <p className="text-slate-400 text-sm py-4 text-center">
                   No blackmarks recorded
                 </p>
               ) : (
@@ -722,13 +722,13 @@ export default function StudentDetailPage() {
             </div>
 
             {/* Gold Marks List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="card-solid p-5">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
                 Gold Marks
               </h2>
               {goldmarks.length === 0 ? (
-                <p className="text-gray-400 text-sm py-4 text-center">
+                <p className="text-slate-400 text-sm py-4 text-center">
                   No gold marks recorded
                 </p>
               ) : (
@@ -769,13 +769,13 @@ export default function StudentDetailPage() {
               )}
             </div>
             {/* Punishments List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="card-solid p-5">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
                 Punishments
               </h2>
               {punishments.length === 0 ? (
-                <p className="text-gray-400 text-sm py-4 text-center">
+                <p className="text-slate-400 text-sm py-4 text-center">
                   No punishments recorded
                 </p>
               ) : (
@@ -843,15 +843,15 @@ export default function StudentDetailPage() {
           </div>
 
           {/* Comments Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="card-solid p-4 sm:p-5">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               Comments ({comments.length})
             </h2>
             {comments.length === 0 ? (
-              <p className="text-gray-400 text-sm py-4 text-center">
+              <p className="text-slate-400 text-sm py-4 text-center">
                 No comments yet
               </p>
             ) : (
@@ -940,7 +940,7 @@ export default function StudentDetailPage() {
           <div>
             <label
               htmlFor="prompt-issued-by"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-slate-700 mb-1"
             >
               Issued By
             </label>
@@ -951,10 +951,10 @@ export default function StudentDetailPage() {
               onChange={(e) => setPromptIssuedBy(e.target.value)}
               placeholder="Enter your name"
               autoFocus
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
-          <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+          <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={confirmBlackmarkPrompt}
               disabled={promptBusy || !promptIssuedBy.trim()}
@@ -965,7 +965,7 @@ export default function StudentDetailPage() {
             <button
               onClick={dismissBlackmarkPrompt}
               disabled={promptBusy}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             >
               Dismiss
             </button>
@@ -979,19 +979,19 @@ export default function StudentDetailPage() {
         onClose={() => setStrikeModalOpen(false)}
         title={`Add strike to student ${studentName}`}
       >
-        <div className="text-sm text-gray-500 mb-4">
+        <div className="text-sm text-slate-500 mb-4">
           Adding strike to{" "}
-          <span className="font-semibold text-gray-700">{studentName}</span>
+          <span className="font-semibold text-slate-700">{studentName}</span>
         </div>
         <div>
-          <label htmlFor="detail-strike-category" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="detail-strike-category" className="block text-sm font-medium text-slate-700 mb-1">
             Category
           </label>
           <select
             id="detail-strike-category"
             value={strikeType}
             onChange={(e) => setStrikeType(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
           >
             <option value="grooming">Personal Grooming</option>
             <option value="repeated-punish">Repeated punishment</option>
@@ -1002,7 +1002,7 @@ export default function StudentDetailPage() {
             <option value="clubbing">Clubbing</option>
           </select>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
             onClick={handleAddStrike}
@@ -1010,7 +1010,7 @@ export default function StudentDetailPage() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setStrikeModalOpen(false)}
           >
             Discard
@@ -1024,9 +1024,9 @@ export default function StudentDetailPage() {
         onClose={() => setBlackmarkModalOpen(false)}
         title={`Add black mark to student ${studentName}`}
       >
-        <div className="text-sm text-gray-500 mb-3">
+        <div className="text-sm text-slate-500 mb-3">
           Adding black mark to{" "}
-          <span className="font-semibold text-gray-700">{studentName}</span>
+          <span className="font-semibold text-slate-700">{studentName}</span>
         </div>
         <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 mb-4">
           <span className="text-sm text-rose-700 font-medium">Current Strikes</span>
@@ -1034,14 +1034,14 @@ export default function StudentDetailPage() {
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <label htmlFor="detail-bm-reason" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-bm-reason" className="block text-sm font-medium text-slate-700 mb-1">
               Reason
             </label>
             <select
               id="detail-bm-reason"
               value={blackmarkReason}
               onChange={(e) => setBlackmarkReason(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
             >
               <option value="grooming">Personal Grooming</option>
               <option value="repeated-punish">Repeated punishment</option>
@@ -1053,7 +1053,7 @@ export default function StudentDetailPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="detail-issuer" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-issuer" className="block text-sm font-medium text-slate-700 mb-1">
               Issued By
             </label>
             <input
@@ -1062,11 +1062,11 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-issuer"
               placeholder="Enter your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
             onClick={handleAddBlackmark}
@@ -1074,7 +1074,7 @@ export default function StudentDetailPage() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setBlackmarkModalOpen(false)}
           >
             Discard
@@ -1088,9 +1088,9 @@ export default function StudentDetailPage() {
         onClose={() => setGoldMarkModalOpen(false)}
         title={`Add gold mark to student ${studentName}`}
       >
-        <div className="text-sm text-gray-500 mb-3">
+        <div className="text-sm text-slate-500 mb-3">
           Adding gold mark to{" "}
-          <span className="font-semibold text-gray-700">{studentName}</span>
+          <span className="font-semibold text-slate-700">{studentName}</span>
         </div>
         <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
           <span className="text-sm text-emerald-700 font-medium">Current Gold Marks</span>
@@ -1098,14 +1098,14 @@ export default function StudentDetailPage() {
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <label htmlFor="detail-gm-reason" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-gm-reason" className="block text-sm font-medium text-slate-700 mb-1">
               Reason
             </label>
             <select
               id="detail-gm-reason"
               value={goldMarkReason}
               onChange={(e) => setGoldMarkReason(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
             >
               <option value="good-behavior">Good Behavior</option>
               <option value="giving-back">Giving Back to College</option>
@@ -1113,7 +1113,7 @@ export default function StudentDetailPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="detail-gm-issuer" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-gm-issuer" className="block text-sm font-medium text-slate-700 mb-1">
               Issued By
             </label>
             <input
@@ -1122,11 +1122,11 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-gm-issuer"
               placeholder="Enter your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
             onClick={handleAddGoldMark}
@@ -1134,7 +1134,7 @@ export default function StudentDetailPage() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setGoldMarkModalOpen(false)}
           >
             Discard
@@ -1148,20 +1148,20 @@ export default function StudentDetailPage() {
         onClose={() => setPunishmentModalOpen(false)}
         title={`Add to punishment - ${studentName}`}
       >
-        <div className="text-sm text-gray-500 mb-4">
+        <div className="text-sm text-slate-500 mb-4">
           Assigning punishment to{" "}
-          <span className="font-semibold text-gray-700">{studentName}</span>
+          <span className="font-semibold text-slate-700">{studentName}</span>
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <label htmlFor="detail-punishment-type" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-punishment-type" className="block text-sm font-medium text-slate-700 mb-1">
               Punishment Type
             </label>
             <select
               id="detail-punishment-type"
               value={punishmentType}
               onChange={(e) => setPunishmentType(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
             >
               <option value="detention">Detention</option>
               <option value="weekend-duty">Weekend Duty</option>
@@ -1170,7 +1170,7 @@ export default function StudentDetailPage() {
             </select>
           </div>
           <div>
-            <label htmlFor="detail-punishment-reason" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-punishment-reason" className="block text-sm font-medium text-slate-700 mb-1">
               Reason
             </label>
             <textarea
@@ -1179,11 +1179,11 @@ export default function StudentDetailPage() {
               onChange={(e) => setPunishmentReason(e.target.value)}
               placeholder="Describe the punishment..."
               rows={3}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white resize-none"
             />
           </div>
           <div>
-            <label htmlFor="detail-punishment-assignedby" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-punishment-assignedby" className="block text-sm font-medium text-slate-700 mb-1">
               Assigned By
             </label>
             <input
@@ -1192,11 +1192,11 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-punishment-assignedby"
               placeholder="Enter your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
             onClick={handleAddPunishment}
@@ -1204,7 +1204,7 @@ export default function StudentDetailPage() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setPunishmentModalOpen(false)}
           >
             Discard
@@ -1218,13 +1218,13 @@ export default function StudentDetailPage() {
         onClose={() => setCommentModalOpen(false)}
         title={`Add comment for ${studentName}`}
       >
-        <div className="text-sm text-gray-500 mb-3">
+        <div className="text-sm text-slate-500 mb-3">
           Adding comment for{" "}
-          <span className="font-semibold text-gray-700">{studentName}</span>
+          <span className="font-semibold text-slate-700">{studentName}</span>
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <label htmlFor="detail-commentor" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-commentor" className="block text-sm font-medium text-slate-700 mb-1">
               Commentor
             </label>
             <input
@@ -1233,11 +1233,11 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-commentor"
               placeholder="Your name"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
             />
           </div>
           <div>
-            <label htmlFor="detail-comment-text" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="detail-comment-text" className="block text-sm font-medium text-slate-700 mb-1">
               Comment
             </label>
             <textarea
@@ -1246,11 +1246,11 @@ export default function StudentDetailPage() {
               id="detail-comment-text"
               placeholder="Write your comment..."
               rows={3}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white resize-none"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white resize-none"
             />
           </div>
         </div>
-        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
             className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
             onClick={handleAddComment}
@@ -1258,7 +1258,7 @@ export default function StudentDetailPage() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
             onClick={() => setCommentModalOpen(false)}
           >
             Discard

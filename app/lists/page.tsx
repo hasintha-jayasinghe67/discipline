@@ -103,19 +103,19 @@ export default function ListsOverviewPage() {
   return (
     <>
       <Header />
-      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="page-shell">
         <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6">
           {/* Header row */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Lists</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Lists</h1>
+              <p className="text-sm text-slate-500 mt-1">
                 {activeLists.length} active, {inactiveLists.length} inactive
               </p>
             </div>
             <button
               onClick={() => router.push("/lists/create")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2"
+              className="btn-primary px-5 py-2.5 transition-all flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -125,11 +125,11 @@ export default function ListsOverviewPage() {
           </div>
 
           {/* Search & date filters */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col gap-3">
+          <div className="card-solid p-4 sm:p-5 flex flex-col gap-3">
             {/* Search by title */}
             <div className="relative">
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -145,32 +145,32 @@ export default function ListsOverviewPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search lists by title..."
-                className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white"
+                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
               />
             </div>
 
             {/* Date range filter */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <span className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">
+              <span className="text-xs sm:text-sm text-slate-500 font-medium shrink-0">
                 Filter by date
               </span>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
                 <label className="flex items-center gap-2 flex-1">
-                  <span className="text-xs text-gray-500 shrink-0">From</span>
+                  <span className="text-xs text-slate-500 shrink-0">From</span>
                   <input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 focus:border-indigo-400 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-slate-900 focus:border-teal-400 focus:bg-white"
                   />
                 </label>
                 <label className="flex items-center gap-2 flex-1">
-                  <span className="text-xs text-gray-500 shrink-0">To</span>
+                  <span className="text-xs text-slate-500 shrink-0">To</span>
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 focus:border-indigo-400 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-slate-900 focus:border-teal-400 focus:bg-white"
                   />
                 </label>
               </div>
@@ -181,7 +181,7 @@ export default function ListsOverviewPage() {
                     setDateFrom("");
                     setDateTo("");
                   }}
-                  className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors shrink-0"
+                  className="text-xs sm:text-sm text-teal-600 hover:text-teal-800 font-medium transition-colors shrink-0"
                 >
                   Clear filters
                 </button>
@@ -189,8 +189,8 @@ export default function ListsOverviewPage() {
             </div>
 
             {/* Sort options */}
-            <div className="border-t border-gray-100 pt-3 flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className="text-xs sm:text-sm text-gray-500 font-medium shrink-0">
+            <div className="border-t border-slate-100 pt-3 flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-xs sm:text-sm text-slate-500 font-medium shrink-0">
                 Sort by
               </span>
               <div className="flex gap-2">
@@ -198,8 +198,8 @@ export default function ListsOverviewPage() {
                   onClick={() => setSortBy("newest")}
                   className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
                     sortBy === "newest"
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                      ? "bg-teal-600 text-white shadow-sm"
+                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
                   }`}
                 >
                   Newest
@@ -208,8 +208,8 @@ export default function ListsOverviewPage() {
                   onClick={() => setSortBy("oldest")}
                   className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
                     sortBy === "oldest"
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                      ? "bg-teal-600 text-white shadow-sm"
+                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
                   }`}
                 >
                   Oldest
@@ -218,8 +218,8 @@ export default function ListsOverviewPage() {
                   onClick={() => setSortBy("students")}
                   className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
                     sortBy === "students"
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-indigo-300"
+                      ? "bg-teal-600 text-white shadow-sm"
+                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
                   }`}
                 >
                   Most students
@@ -234,7 +234,7 @@ export default function ListsOverviewPage() {
               <button
                 onClick={() => setShowInactive(!showInactive)}
                 className={`relative w-10 h-5 rounded-full transition-colors ${
-                  showInactive ? "bg-indigo-500" : "bg-gray-300"
+                  showInactive ? "bg-teal-500" : "bg-gray-300"
                 }`}
               >
                 <span
@@ -243,29 +243,29 @@ export default function ListsOverviewPage() {
                   }`}
                 />
               </button>
-              <span className="text-sm text-gray-600">Show inactive lists</span>
+              <span className="text-sm text-slate-600">Show inactive lists</span>
             </label>
           )}
 
           {/* Loading state */}
           {loading && (
             <div className="flex items-center justify-center py-12">
-              <div className="text-gray-400 text-base animate-pulse">Loading lists...</div>
+              <div className="text-slate-400 text-base animate-pulse">Loading lists...</div>
             </div>
           )}
 
           {/* Empty state */}
           {!loading && sortedDisplayedLists.length === 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="card-solid p-8 text-center">
               <div className="text-5xl mb-4">📋</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">
                 {filtersActive
                   ? "No lists match your filters"
                   : showInactive
                   ? "No inactive lists"
                   : "No active lists yet"}
               </h2>
-              <p className="text-sm text-gray-500 mb-5">
+              <p className="text-sm text-slate-500 mb-5">
                 {filtersActive
                   ? "Try adjusting the search or date range."
                   : showInactive
@@ -275,7 +275,7 @@ export default function ListsOverviewPage() {
               {!showInactive && !filtersActive && (
                 <button
                   onClick={() => router.push("/lists/create")}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition-all"
+                  className="btn-primary px-5 py-2.5 transition-all"
                 >
                   Create a List
                 </button>
@@ -290,7 +290,7 @@ export default function ListsOverviewPage() {
                 <button
                   key={list.id}
                   onClick={() => router.push(`/lists/${list.id}`)}
-                  className="text-left bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all cursor-pointer"
+                  className="text-left card-solid p-4 sm:p-5 hover:shadow-md hover:border-slate-200 transition-all cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -298,18 +298,18 @@ export default function ListsOverviewPage() {
                         list.active ? "bg-emerald-400" : "bg-gray-300"
                       }`} />
                       <div className="min-w-0">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                        <h3 className="text-base sm:text-lg font-semibold text-slate-900 truncate">
                           {list.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-gray-500">
+                        <p className="text-xs sm:text-sm text-slate-500">
                           {list.students.length} student{list.students.length !== 1 ? "s" : ""}
                           {!list.active && (
-                            <span className="ml-2 text-gray-400">(inactive)</span>
+                            <span className="ml-2 text-slate-400">(inactive)</span>
                           )}
                         </p>
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>

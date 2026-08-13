@@ -83,7 +83,7 @@ export default function ConfirmPasswordModal({
         <div>
           <label
             htmlFor="confirm-password"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-slate-700 mb-1"
           >
             Enter your password to confirm
           </label>
@@ -100,7 +100,7 @@ export default function ConfirmPasswordModal({
                 handleConfirm();
               }
             }}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-red-400 focus:bg-white"
+            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-red-400 focus:bg-white"
           />
         </div>
         {error && (
@@ -108,7 +108,7 @@ export default function ConfirmPasswordModal({
             {error}
           </div>
         )}
-        <div className="flex w-full gap-2 pt-2 border-t border-gray-100">
+        <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
           <button
             onClick={handleConfirm}
             disabled={busy || !password.trim()}
@@ -119,7 +119,7 @@ export default function ConfirmPasswordModal({
           <button
             onClick={onClose}
             disabled={busy}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
           >
             Cancel
           </button>

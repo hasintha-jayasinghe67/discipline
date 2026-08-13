@@ -23,7 +23,7 @@ export default function Modal({
 
     if (isOpen) {
       dialog.showModal();
-      document.body.style.overflow = "hidden"; // Prevent background scrolling
+      document.body.style.overflow = "hidden";
     } else {
       dialog.close();
       document.body.style.overflow = "";
@@ -34,14 +34,14 @@ export default function Modal({
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="p-0 rounded-xl shadow-2xl max-w-md w-[calc(100%-2rem)] sm:w-full bg-white"
+      className="p-0 rounded-2xl shadow-2xl shadow-slate-900/20 max-w-md w-[calc(100%-2rem)] sm:w-full bg-white border border-slate-200/80"
     >
       <div className="p-6 flex flex-col gap-4">
-        <div className="flex justify-between items-center border-b pb-2">
-          <h2 className="text-xl font-semibold">{title}</h2>
+        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h2 className="text-lg font-semibold text-slate-900 tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 font-bold text-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-lg transition-colors"
             aria-label="Close modal"
           >
             ✕

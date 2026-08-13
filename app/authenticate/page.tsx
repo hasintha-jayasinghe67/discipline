@@ -27,17 +27,21 @@ export default function AuthenticatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-blue-500 to-indigo-700 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background accents */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,rgba(13,148,136,0.25),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_80%_100%,rgba(8,145,178,0.15),transparent)]" />
+
+      <div className="w-full max-w-sm relative z-10">
         {/* Branding */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-4 ring-2 ring-white/30 shadow-lg">
+          <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4 ring-2 ring-teal-400/30 shadow-xl shadow-teal-500/10">
             <img src="/ICON.jpeg" alt="Prefects Discipline" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-white text-2xl font-bold tracking-tight">
             Prefects Discipline
           </h1>
-          <p className="text-indigo-200 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-1.5">
             Sign in to access the dashboard
           </p>
         </div>
@@ -45,13 +49,10 @@ export default function AuthenticatePage() {
         {/* Login Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 flex flex-col gap-4"
+          className="card-solid p-6 sm:p-8 flex flex-col gap-4 shadow-2xl shadow-slate-900/40"
         >
           <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1.5">
               Username
             </label>
             <input
@@ -62,15 +63,12 @@ export default function AuthenticatePage() {
               placeholder="Enter your username"
               required
               autoFocus
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="input-field"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
               Password
             </label>
             <input
@@ -80,23 +78,23 @@ export default function AuthenticatePage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="input-field"
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 flex items-center gap-2">
-              <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-rose-50 border border-rose-200/70 rounded-xl px-3 py-2.5 flex items-center gap-2">
+              <svg className="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm text-red-700">{error}</span>
+              <span className="text-sm text-rose-700">{error}</span>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full btn-primary px-4 py-2.5 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
