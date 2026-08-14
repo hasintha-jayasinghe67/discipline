@@ -269,6 +269,7 @@ export default function DisciplinePage() {
   };
 
   const openClearModal = () => {
+    if (!isSuperuser(user)) return;
     setClearPassword("");
     setClearConfirmed(false);
     setClearError("");
@@ -289,7 +290,7 @@ export default function DisciplinePage() {
   };
 
   const handleClearStrikes = async () => {
-    if (!user || clearing) return;
+    if (!isSuperuser(user) || clearing) return;
     setClearing(true);
     setClearError("");
     try {
@@ -793,7 +794,7 @@ export default function DisciplinePage() {
                   Generate Report
                 </button>
               )}
-              {isAdminOrAbove(user) && (
+              {isSuperuser(user) && (
                 <button
                   onClick={openClearModal}
                   disabled={strikes.length === 0}
@@ -1206,7 +1207,8 @@ export default function DisciplinePage() {
         />
       )}
 
-      {/* Clear Strikes confirmation modal */}
+      {/* Clear Strikes confirmation modal (superuser only) */}
+      {isSuperuser(user) && (
       <Modal
         isOpen={clearModalOpen}
         onClose={() => setClearModalOpen(false)}
@@ -1265,6 +1267,7 @@ export default function DisciplinePage() {
           </div>
         </div>
       </Modal>
+      )}
     </>
   );
 }
