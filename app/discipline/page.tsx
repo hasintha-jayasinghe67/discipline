@@ -772,7 +772,7 @@ export default function DisciplinePage() {
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {isAdminOrAbove(user) && (
+              {isSuperuser(user) && (
                 <button
                   onClick={() => setReportModalOpen(true)}
                   className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 px-3.5 py-2 rounded-lg shadow-sm transition-all"
@@ -1198,11 +1198,13 @@ export default function DisciplinePage() {
         onVerified={handleDeleteRecord}
       />
 
-      {/* Generate report modal (admin only) */}
-      <GenerateReportModal
-        isOpen={reportModalOpen}
-        onClose={() => setReportModalOpen(false)}
-      />
+      {/* Generate report modal (superuser only) */}
+      {isSuperuser(user) && (
+        <GenerateReportModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+        />
+      )}
 
       {/* Clear Strikes confirmation modal */}
       <Modal

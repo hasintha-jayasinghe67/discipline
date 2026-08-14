@@ -233,12 +233,16 @@ export async function generateDisciplineReportPdf(options: {
   return { empty: false as const };
 }
 
-export async function generateDailyDisciplineReport() {
-  const now = new Date();
-  const range: ReportDateRange = {
+export function getTodayRange(now = new Date()): ReportDateRange {
+  return {
     start: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
     endExclusive: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
   };
+}
+
+export async function generateDailyDisciplineReport() {
+  const now = new Date();
+  const range = getTodayRange(now);
 
   return generateDisciplineReportPdf({
     range,

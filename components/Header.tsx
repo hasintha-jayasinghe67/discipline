@@ -3,8 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
-import GenerateDailyReportButton from "./GenerateDailyReportButton";
-
 export default () => {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -67,7 +65,6 @@ export default () => {
 
         {/* Desktop navigation */}
         <nav className="hidden sm:flex items-center gap-1 sm:gap-2">
-          {isAdmin && <GenerateDailyReportButton />}
           {isAdmin && (
             <a href="/users" className={navLinkClass}>
               Users
@@ -140,11 +137,6 @@ export default () => {
           className="sm:hidden border-t border-white/10 px-3 pb-3 pt-1 animate-[menu-in_0.15s_ease-out] bg-slate-900/98"
           aria-label="Mobile navigation"
         >
-          {isAdmin && (
-            <div className="px-2 py-2">
-              <GenerateDailyReportButton />
-            </div>
-          )}
           <div className="flex flex-col gap-0.5 pt-1">
             {isAdmin && (
               <a href="/users" onClick={() => setMenuOpen(false)} className={menuItemClass}>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import { useAuth, isSuperuser } from "@/lib/AuthContext";
 import { generateRangeDisciplineReport } from "@/lib/disciplineReport";
 
 interface GenerateReportModalProps {
@@ -13,6 +14,7 @@ export default function GenerateReportModal({
   isOpen,
   onClose,
 }: GenerateReportModalProps) {
+  const { user } = useAuth();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -26,6 +28,10 @@ export default function GenerateReportModal({
 
   const handleGenerate = async () => {
     if (generating) return;
+    if (!isSuperuser(user)) {
+      setError("Only superusers can generate reports for a custom date range.");
+      return;
+    }
     setError("");
 
     if (!dateFrom || !dateTo) {

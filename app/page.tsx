@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import Header from "@/components/Header";
+import DashboardDailyStats from "@/components/DashboardDailyStats";
 import Student from "@/components/Student";
 import Modal from "@/components/Modal";
 import { normalizeName, searchStudents, type StudentInfo } from "@/lib/nameSearch";
@@ -106,6 +107,9 @@ export default function Home() {
   const [commentor, setCommentor] = useState("");
   const [commentText, setCommentText] = useState("");
 
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0);
+  const bumpStatsRefresh = () => setStatsRefreshKey((k) => k + 1);
+
   const fetchStudentData = async () => {
     if (!name.trim()) return;
 
@@ -201,6 +205,7 @@ export default function Home() {
 
   // Refresh the cached counts map after a record is added (only if it was loaded)
   const refreshRecordCounts = async () => {
+    bumpStatsRefresh();
     if (!countsCache.current) return;
     const { counts, cats } = await fetchCountsMap();
     countsCache.current = counts;
@@ -355,7 +360,12 @@ export default function Home() {
     <>
       <Header />
       <div className="page-shell">
-        <div className="max-w-2xl mx-auto flex flex-col gap-3">
+        <div className="max-w-6xl mx-auto flex flex-col gap-6 sm:gap-8">
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
+              Find a student
+            </h2>
+            <div className="max-w-2xl mx-auto flex flex-col gap-3">
           <div className="card-solid p-3">
             {/* Search mode tabs */}
             <div className="flex gap-1.5 mb-3 pb-3 border-b border-slate-100">
@@ -582,6 +592,13 @@ export default function Home() {
               )}
             </>
           )}
+            </div>
+          </div>
+
+          <DashboardDailyStats
+            refreshKey={statsRefreshKey}
+            showReportButton={isAdminOrAbove(user)}
+          />
         </div>
         {/* Punishments section commented out for now */}
         {/* <div className="card-solid p-5">

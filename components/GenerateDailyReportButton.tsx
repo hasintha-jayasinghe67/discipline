@@ -3,7 +3,19 @@
 import { useState } from "react";
 import { generateDailyDisciplineReport } from "@/lib/disciplineReport";
 
-export default function GenerateDailyReportButton() {
+type GenerateDailyReportButtonProps = {
+  variant?: "header" | "page";
+};
+
+const variantClasses = {
+  header:
+    "inline-flex items-center gap-1.5 bg-teal-500/15 text-teal-300 hover:bg-teal-500/25 hover:text-teal-200 border border-teal-400/25 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0",
+  page: "inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 px-3.5 py-2 rounded-lg shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0 w-fit",
+};
+
+export default function GenerateDailyReportButton({
+  variant = "header",
+}: GenerateDailyReportButtonProps) {
   const [generating, setGenerating] = useState(false);
 
   const handleClick = async () => {
@@ -30,7 +42,7 @@ export default function GenerateDailyReportButton() {
       onClick={handleClick}
       disabled={generating}
       title="Generate and download today's discipline report (PDF)"
-      className="inline-flex items-center gap-1.5 bg-teal-500/15 text-teal-300 hover:bg-teal-500/25 hover:text-teal-200 border border-teal-400/25 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
+      className={variantClasses[variant]}
     >
       <svg
         className="w-3.5 h-3.5"
