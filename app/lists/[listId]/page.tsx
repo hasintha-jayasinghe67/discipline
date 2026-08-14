@@ -10,6 +10,12 @@ import { getThreshold, hasRule } from "@/lib/strikeRules";
 import { categoryLabels } from "@/lib/labels";
 import { addPendingBlackmark, removePendingBlackmark } from "@/lib/pendingBlackmarks";
 import { fetchStudentsFor } from "@/lib/students";
+import ListAttendancePanel from "@/components/ListAttendancePanel";
+import ListAttendanceSummary from "@/components/ListAttendanceSummary";
+import {
+  AttendanceSessionSummary,
+  fetchListAttendanceSessions,
+} from "@/lib/listAttendance";
 
 interface StudentInfo {
   "Admission No": number;
@@ -64,6 +70,12 @@ export default function ListDetailPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  // Attendance mode state
+  const [attendanceMode, setAttendanceMode] = useState(false);
+  const [attendanceSummaries, setAttendanceSummaries] = useState<
+    AttendanceSessionSummary[]
+  >([]);
+
   // Bulk action modal state
   const [bulkStrikeModalOpen, setBulkStrikeModalOpen] = useState(false);
   const [bulkBlackMarkModalOpen, setBulkBlackMarkModalOpen] = useState(false);
@@ -82,6 +94,11 @@ export default function ListDetailPage() {
   const [bulkPromptIssuedBy, setBulkPromptIssuedBy] = useState("");
   const [bulkPromptBusy, setBulkPromptBusy] = useState(false);
 
+  const loadAttendanceSummaries = async (id: number) => {
+    const summaries = await fetchListAttendanceSessions(id);
+    setAttendanceSummaries(summaries);
+  };
+
   const fetchList = async () => {
     setLoading(true);
 
@@ -98,6 +115,8 @@ export default function ListDetailPage() {
 
     const foundList = listData[0] as ListRecord;
     setList(foundList);
+
+    await loadAttendanceSummaries(foundList.id);
 
     // Fetch full student info for each admission number in the list
     if (foundList.students.length > 0) {
@@ -201,8 +220,26 @@ export default function ListDetailPage() {
   const toggleSelectMode = () => {
     if (selectMode) setSelectedIds([]);
     setSelectMode(!selectMode);
+    setAttendanceMode(false);
     setBulkStrikeModalOpen(false);
     setBulkBlackMarkModalOpen(false);
+  };
+
+  const closeAttendanceMode = () => {
+    setAttendanceMode(false);
+    if (list) loadAttendanceSummaries(list.id);
+  };
+
+  const toggleAttendanceMode = () => {
+    if (attendanceMode) {
+      closeAttendanceMode();
+    } else {
+      setSelectMode(false);
+      setSelectedIds([]);
+      setBulkStrikeModalOpen(false);
+      setBulkBlackMarkModalOpen(false);
+      setAttendanceMode(true);
+    }
   };
 
   const toggleSelectStudent = (admissionNo: number) => {
@@ -443,16 +480,31 @@ export default function ListDetailPage() {
                   Add Students
                 </button>
                 {students.length > 0 && (
-                  <button
-                    onClick={toggleSelectMode}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all ${
-                      selectMode
-                        ? "bg-gray-200 hover:bg-gray-300 text-slate-700"
-                        : "bg-white border border-gray-300 hover:border-teal-400 hover:text-teal-600 text-slate-700"
-                    }`}
-                  >
-                    {selectMode ? "Cancel" : "Select"}
-                  </button>
+                  <>
+                    <button
+                      onClick={toggleSelectMode}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all ${
+                        selectMode
+                          ? "bg-gray-200 hover:bg-gray-300 text-slate-700"
+                          : "bg-white border border-gray-300 hover:border-teal-400 hover:text-teal-600 text-slate-700"
+                      }`}
+                    >
+                      {selectMode ? "Cancel" : "Select"}
+                    </button>
+                    <button
+                      onClick={toggleAttendanceMode}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all flex items-center gap-1.5 ${
+                        attendanceMode
+                          ? "bg-gray-200 hover:bg-gray-300 text-slate-700"
+                          : "bg-white border border-gray-300 hover:border-sky-400 hover:text-sky-600 text-slate-700"
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                      {attendanceMode ? "Cancel" : "Take Attendance"}
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={handleToggleActive}
@@ -471,6 +523,7 @@ export default function ListDetailPage() {
                 </button>
               </div>
             </div>
+            <ListAttendanceSummary summaries={attendanceSummaries} />
           </div>
 
           {/* Selection action bar */}
@@ -521,8 +574,17 @@ export default function ListDetailPage() {
             </div>
           )}
 
+          {/* Attendance panel */}
+          {attendanceMode && students.length > 0 && (
+            <ListAttendancePanel
+              listId={Number(listId)}
+              students={students}
+              onClose={closeAttendanceMode}
+            />
+          )}
+
           {/* Students list */}
-          {students.length === 0 ? (
+          {!attendanceMode && students.length === 0 ? (
             <div className="card-solid p-8 text-center">
               <div className="text-5xl mb-4">👤</div>
               <h2 className="text-lg font-semibold text-slate-900 mb-1">
@@ -532,7 +594,7 @@ export default function ListDetailPage() {
                 Use the "Add Students" button above to add students to this list.
               </p>
             </div>
-          ) : (
+          ) : !attendanceMode ? (
             <div className="flex flex-col gap-3">
               {students.map((student) => {
                 const isSelected = selectedIds.includes(student["Admission No"]);
@@ -609,7 +671,7 @@ export default function ListDetailPage() {
                 );
               })}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
