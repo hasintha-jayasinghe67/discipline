@@ -711,6 +711,7 @@ export default function ListDetailPage() {
             <option value="substances">Substances</option>
             <option value="classfuckup">Classroom Behavior</option>
             <option value="clubbing">Clubbing</option>
+            <option value="social-media">Social Media Posts</option>
           </select>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
@@ -835,6 +836,7 @@ export default function ListDetailPage() {
               <option value="substances">Substances</option>
               <option value="classfuckup">Classroom Behavior</option>
               <option value="clubbing">Clubbing</option>
+              <option value="social-media">Social Media Posts</option>
             </select>
           </div>
           <div>

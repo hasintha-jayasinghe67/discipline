@@ -24,6 +24,7 @@ const categoryLabels: Record<string, string> = {
   substances: "Substances",
   classfuckup: "Classroom Behavior",
   clubbing: "Clubbing",
+  "social-media": "Social Media Posts",
   "good-behavior": "Good Behavior",
   "giving-back": "Giving Back to College",
   "excellent-academics": "Excellent Academics",
@@ -1005,6 +1006,7 @@ export default function StudentDetailPage() {
             <option value="substances">Substances</option>
             <option value="classfuckup">Classroom Behavior</option>
             <option value="clubbing">Clubbing</option>
+            <option value="social-media">Social Media Posts</option>
           </select>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
@@ -1055,6 +1057,7 @@ export default function StudentDetailPage() {
               <option value="substances">Substances</option>
               <option value="classfuckup">Classroom Behavior</option>
               <option value="clubbing">Clubbing</option>
+              <option value="social-media">Social Media Posts</option>
             </select>
           </div>
           <div>

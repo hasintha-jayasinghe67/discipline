@@ -6,6 +6,7 @@ export const categoryLabels: Record<string, string> = {
   substances: "Substances",
   classfuckup: "Classroom Behavior",
   clubbing: "Clubbing",
+  "social-media": "Social Media Posts",
   "good-behavior": "Good Behavior",
   "giving-back": "Giving Back to College",
   "excellent-academics": "Excellent Academics",
