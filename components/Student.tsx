@@ -30,11 +30,11 @@ export default ({
   pendingBlackmark?: boolean;
 }) => {
   return (
-    <div className="card-solid p-4 sm:p-5 m-2 hover-lift transition-all duration-200">
+    <div className="card-solid p-4 sm:p-5 hover-lift">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <a href={`/student/${admission}`} className="group">
-            <h2 className="text-slate-900 text-base sm:text-lg font-semibold group-hover:text-teal-700 transition-colors">
+            <h2 className="text-slate-900 text-base sm:text-lg font-semibold group-hover:text-accent transition-colors">
               {name}
             </h2>
           </a>

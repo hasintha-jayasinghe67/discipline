@@ -131,7 +131,7 @@ export default function GenerateReportModal({
           <button
             onClick={handleClose}
             disabled={generating}
-            className="flex-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 font-medium px-4 py-2.5 rounded-xl transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
           >
             Cancel
           </button>

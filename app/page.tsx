@@ -362,7 +362,7 @@ export default function Home() {
       <div className="page-shell">
         <div className="max-w-6xl mx-auto flex flex-col gap-6 sm:gap-8">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
+            <h2 className="page-title mb-3 sm:mb-4">
               Find a student
             </h2>
             <div className="max-w-2xl mx-auto flex flex-col gap-3">
@@ -373,8 +373,8 @@ export default function Home() {
                 onClick={() => setActiveTab("admission")}
                 className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all cursor-pointer ${
                   activeTab === "admission"
-                    ? "bg-teal-600 text-white shadow-sm"
-                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
+                    ? "bg-accent text-white shadow-sm"
+                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-accent"
                 }`}
               >
                 Admission No
@@ -383,8 +383,8 @@ export default function Home() {
                 onClick={() => setActiveTab("name")}
                 className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all cursor-pointer ${
                   activeTab === "name"
-                    ? "bg-teal-600 text-white shadow-sm"
-                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
+                    ? "bg-accent text-white shadow-sm"
+                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-accent"
                 }`}
               >
                 Name
@@ -420,7 +420,7 @@ export default function Home() {
                       }
                     }}
                     placeholder="Enter Admission No"
-                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                   />
                 </div>
                 <button
@@ -459,7 +459,7 @@ export default function Home() {
                       }
                     }}
                     placeholder="Enter student name (min 2 letters)"
-                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                   />
                 </div>
                 <button
@@ -582,7 +582,7 @@ export default function Home() {
                           Math.min(c + NAME_RESULTS_PAGE, nameResults.length)
                         )
                       }
-                      className="w-full card-solid px-5 py-3 text-sm font-medium text-teal-600 hover:border-teal-300 hover:bg-teal-50 transition-all cursor-pointer"
+                      className="w-full card-solid px-5 py-3 text-sm font-medium text-accent hover:border-accent hover:bg-accent/10 transition-all cursor-pointer"
                     >
                       Load more students ({nameResults.length - visibleCount}{" "}
                       remaining)
@@ -659,7 +659,7 @@ export default function Home() {
               id="blackmark-reason"
               value={blackmarkReason}
               onChange={(e) => setBlackmarkReason(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="grooming">Personal Grooming</option>
               <option value="repeated-punish">Repeated punishment</option>
@@ -683,13 +683,13 @@ export default function Home() {
               type="text"
               id="issuer"
               placeholder="Enter your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={async () => {
               const { error } = await supabase.from("blackmarks").insert({
                 "Admission No": modalAdmissionNo,
@@ -725,7 +725,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setBlackmarkModalOpen(false)}
           >
             Discard
@@ -755,7 +755,7 @@ export default function Home() {
             id="strike-category"
             value={strikeType}
             onChange={(e) => setStrikeType(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
           >
             <option value="grooming">Personal Grooming</option>
             <option value="repeated-punish">Repeated punishment</option>
@@ -768,7 +768,7 @@ export default function Home() {
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={async () => {
               const { error } = await supabase.from("strikes").insert({
                 "Admission No": modalAdmissionNo,
@@ -809,7 +809,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setStrikeModalOpen(false)}
           >
             Discard
@@ -850,14 +850,14 @@ export default function Home() {
               onChange={(e) => setPromptIssuedBy(e.target.value)}
               placeholder="Enter your name"
               autoFocus
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={confirmBlackmarkPrompt}
               disabled={promptBusy || !promptIssuedBy.trim()}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              className="btn-danger flex-1 px-4 py-2.5"
             >
               {promptBusy ? "Saving..." : "Create Black Mark"}
             </button>
@@ -904,7 +904,7 @@ export default function Home() {
               id="goldmark-reason"
               value={goldMarkReason}
               onChange={(e) => setGoldMarkReason(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="good-behavior">Good Behavior</option>
               <option value="giving-back">Giving Back to College</option>
@@ -924,13 +924,13 @@ export default function Home() {
               type="text"
               id="goldmark-issuer"
               placeholder="Enter your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={async () => {
               const { error } = await supabase.from("goldmarks").insert({
                 "Admission No": modalAdmissionNo,
@@ -950,7 +950,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setGoldMarkModalOpen(false)}
           >
             Discard
@@ -982,7 +982,7 @@ export default function Home() {
               type="text"
               id="commentor"
               placeholder="Your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div>
@@ -998,13 +998,13 @@ export default function Home() {
               id="comment-text"
               placeholder="Write your comment..."
               rows={3}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white resize-none"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white resize-none"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={async () => {
               await supabase.from("comments").insert({
                 "Admission No": modalAdmissionNo,
@@ -1019,7 +1019,7 @@ export default function Home() {
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setCommentModalOpen(false)}
           >
             Discard

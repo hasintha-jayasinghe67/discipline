@@ -219,8 +219,8 @@ export default function DashboardDailyStats({
     <div className="flex flex-col gap-4 sm:gap-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Today&apos;s Overview</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{todayLabel}</p>
+          <h1 className="page-title">Today&apos;s Overview</h1>
+          <p className="page-subtitle mt-0.5">{todayLabel}</p>
         </div>
         {showReportButton && <GenerateDailyReportButton variant="page" />}
       </div>

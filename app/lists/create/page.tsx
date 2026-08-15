@@ -106,7 +106,7 @@ export default function CreateListPage() {
           {/* Back link */}
           <a
             href="/lists"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-accent transition-colors w-fit"
           >
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -115,7 +115,7 @@ export default function CreateListPage() {
           </a>
 
           <div className="card-solid p-4 sm:p-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">
+            <h1 className="page-title mb-6">
               Create New List
             </h1>
 
@@ -130,7 +130,7 @@ export default function CreateListPage() {
                 onChange={(e) => setListTitle(e.target.value)}
                 placeholder="e.g. Duty Roster, Detention Group A..."
                 maxLength={200}
-                className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
               />
             </div>
 
@@ -147,12 +147,12 @@ export default function CreateListPage() {
                   {addedStudents.map((s) => (
                     <span
                       key={s["Admission No"]}
-                      className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200 text-teal-700 text-xs sm:text-sm px-2.5 py-1 rounded-full"
+                      className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/25 text-accent text-xs sm:text-sm px-2.5 py-1 rounded-full"
                     >
                       {s["Name with Initials"]}
                       <button
                         onClick={() => handleRemoveAdded(s["Admission No"])}
-                        className="text-teal-400 hover:text-teal-600 transition-colors"
+                        className="text-accent hover:text-accent-hover transition-colors"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -188,13 +188,13 @@ export default function CreateListPage() {
                     onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
                     placeholder="Enter Admission No"
                     type="number"
-                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                   />
                 </div>
                 <button
                   onClick={handleSearch}
                   disabled={searching || !searchQuery.trim()}
-                  className="bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+                  className="bg-accent hover:bg-accent-hover disabled:bg-accent/40 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
                 >
                   {searching ? "..." : "Search"}
                 </button>
@@ -207,7 +207,7 @@ export default function CreateListPage() {
                 {searchResult ? (
                   <div className="flex items-center justify-between bg-slate-50 border border-slate-200/70 rounded-xl px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
                         {searchResult["Name with Initials"].charAt(0)}
                       </div>
                       <div>
@@ -252,7 +252,7 @@ export default function CreateListPage() {
                 value={createdBy}
                 onChange={(e) => setCreatedBy(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
               />
             </div>
 
@@ -260,7 +260,7 @@ export default function CreateListPage() {
             <button
               onClick={handleSubmit}
               disabled={!listTitle.trim() || addedStudents.length === 0 || !createdBy.trim() || submitting}
-              className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white font-medium px-5 py-3 rounded-lg shadow-sm transition-all text-sm sm:text-base"
+              className="w-full bg-accent hover:bg-accent-hover disabled:bg-accent/40 text-white font-medium px-5 py-3 rounded-lg shadow-sm transition-all text-sm sm:text-base"
             >
               {submitting ? "Creating..." : `Create List (${addedStudents.length} students)`}
             </button>

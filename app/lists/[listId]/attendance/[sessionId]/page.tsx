@@ -135,7 +135,7 @@ export default function AttendanceSessionDetailPage() {
             </p>
             <a
               href={`/lists/${listId}`}
-              className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-800 font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-hover font-medium transition-colors"
             >
               Back to list
             </a>
@@ -171,7 +171,7 @@ export default function AttendanceSessionDetailPage() {
         <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6">
           <a
             href={`/lists/${listId}`}
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-accent transition-colors w-fit"
           >
             <svg
               className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -190,7 +190,7 @@ export default function AttendanceSessionDetailPage() {
           </a>
 
           <div className="card-solid p-4 sm:p-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+            <h1 className="page-title">
               Attendance
             </h1>
             <p className="text-sm text-slate-500 mt-1.5">
@@ -258,13 +258,13 @@ export default function AttendanceSessionDetailPage() {
                           onClick={() =>
                             router.push(`/student/${student.admissionNo}`)
                           }
-                          className="text-left bg-white rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 flex items-center gap-3 hover:border-teal-300 hover:shadow-md transition-all group"
+                          className="text-left bg-white rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 flex items-center gap-3 hover:border-accent hover:shadow-md transition-all group"
                         >
                           <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0">
                             {student.name.charAt(0)}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate group-hover:text-teal-600 transition-colors">
+                            <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate group-hover:text-accent transition-colors">
                               {student.name}
                             </h3>
                             <p className="text-xs sm:text-sm text-slate-500">

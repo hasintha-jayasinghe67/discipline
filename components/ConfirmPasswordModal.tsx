@@ -112,14 +112,14 @@ export default function ConfirmPasswordModal({
           <button
             onClick={handleConfirm}
             disabled={busy || !password.trim()}
-            className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-danger flex-1 px-4 py-2.5"
           >
             {busy ? "Verifying..." : confirmLabel}
           </button>
           <button
             onClick={onClose}
             disabled={busy}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
           >
             Cancel
           </button>

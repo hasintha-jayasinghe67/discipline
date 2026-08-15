@@ -267,7 +267,7 @@ export default function ListAttendancePanel({
         <button
           onClick={handleSave}
           disabled={saving || loading || !takenBy.trim()}
-          className="flex-1 bg-sky-600 hover:bg-sky-700 disabled:bg-sky-300 disabled:cursor-not-allowed text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all"
+          className="btn-primary flex-1 px-4 py-2.5 text-sm"
         >
           {saving
             ? "Saving..."
@@ -278,7 +278,7 @@ export default function ListAttendancePanel({
         <button
           onClick={onClose}
           disabled={saving}
-          className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-all"
+          className="btn-secondary flex-1 px-4 py-2.5 text-sm"
         >
           Cancel
         </button>

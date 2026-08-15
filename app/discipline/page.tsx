@@ -623,8 +623,8 @@ export default function DisciplinePage() {
       count: studentsWithRecords,
       subline: "with records",
       sublineClass: "text-slate-400",
-      chipClass: "bg-teal-100 text-teal-600",
-      hoverClass: "hover:border-teal-300",
+      chipClass: "bg-accent/15 text-accent",
+      hoverClass: "hover:border-accent",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -658,7 +658,7 @@ export default function DisciplinePage() {
               </span>
               <a
                 href={`/student/${rec.admissionNo}`}
-                className="text-sm font-semibold text-slate-900 hover:text-teal-600 transition-colors"
+                className="text-sm font-semibold text-slate-900 hover:text-accent transition-colors"
               >
                 {rec.student?.["Name with Initials"] || `Student #${rec.admissionNo}`}
               </a>
@@ -765,10 +765,10 @@ export default function DisciplinePage() {
           {/* Page header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <h1 className="page-title">
                 Discipline Records
               </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <p className="page-subtitle mt-0.5">
                 All strikes, black marks, gold marks, punishments, and comments across students
               </p>
             </div>
@@ -776,7 +776,7 @@ export default function DisciplinePage() {
               {isSuperuser(user) && (
                 <button
                   onClick={() => setReportModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 px-3.5 py-2 rounded-lg shadow-sm transition-all"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-accent bg-accent/10 border border-accent/25 hover:bg-accent/20 px-3.5 py-2 rounded-lg shadow-sm transition-all"
                 >
                   <svg
                     className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -818,7 +818,7 @@ export default function DisciplinePage() {
               )}
               <a
                 href="/"
-                className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-accent transition-colors w-fit"
               >
                 <svg
                   className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -885,7 +885,7 @@ export default function DisciplinePage() {
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="flex-1 sm:w-auto bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-teal-400 focus:bg-white"
+                    className="flex-1 sm:w-auto bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-accent focus:bg-white"
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -897,7 +897,7 @@ export default function DisciplinePage() {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="flex-1 sm:w-auto bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-teal-400 focus:bg-white"
+                    className="flex-1 sm:w-auto bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-accent focus:bg-white"
                   />
                 </div>
               </div>
@@ -923,7 +923,7 @@ export default function DisciplinePage() {
                   onChange={(e) => setStudentFilter(e.target.value)}
                   type="text"
                   placeholder="Search by student name or admission no..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                 />
               </div>
               {/* Issuer search */}
@@ -946,7 +946,7 @@ export default function DisciplinePage() {
                   onChange={(e) => setIssuerFilter(e.target.value)}
                   type="text"
                   placeholder="Search by who assigned / issued..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/70 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                 />
                 {filtersActive && (
                   <button
@@ -956,7 +956,7 @@ export default function DisciplinePage() {
                       setIssuerFilter("");
                       setStudentFilter("");
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium text-teal-600 hover:text-teal-800 transition-colors"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium text-accent hover:text-accent-hover transition-colors"
                   >
                     Clear
                   </button>
@@ -974,8 +974,8 @@ export default function DisciplinePage() {
                   onClick={() => setActiveTab(tab)}
                   className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                     activeTab === tab
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-white border border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-600"
+                      ? "bg-accent text-white shadow-sm"
+                      : "bg-surface border border-hairline text-label-secondary hover:border-accent hover:text-accent"
                   }`}
                 >
                   {tabLabels[tab]}
@@ -1089,8 +1089,8 @@ export default function DisciplinePage() {
                       (activeTab === "blackmarks" && blackmarkSort === "newest") ||
                       (activeTab === "punishments" && punishmentSort === "newest") ||
                       ((activeTab === "goldmarks" || activeTab === "comments") && simpleSort === "newest")
-                        ? "bg-teal-600 text-white"
-                        : "text-slate-500 hover:text-slate-700"
+                        ? "bg-accent text-white"
+                        : "text-label-secondary hover:text-label"
                     }`}
                   >
                     Newest
@@ -1110,8 +1110,8 @@ export default function DisciplinePage() {
                       (activeTab === "blackmarks" && blackmarkSort === "oldest") ||
                       (activeTab === "punishments" && punishmentSort === "oldest") ||
                       ((activeTab === "goldmarks" || activeTab === "comments") && simpleSort === "oldest")
-                        ? "bg-teal-600 text-white"
-                        : "text-slate-500 hover:text-slate-700"
+                        ? "bg-accent text-white"
+                        : "text-label-secondary hover:text-label"
                     }`}
                   >
                     Oldest
@@ -1129,7 +1129,7 @@ export default function DisciplinePage() {
                         (activeTab === "strikes" && strikeSort === "category") ||
                         (activeTab === "blackmarks" && blackmarkSort === "category") ||
                         (activeTab === "punishments" && punishmentSort === "type")
-                          ? "bg-teal-600 text-white"
+                          ? "bg-accent text-white"
                           : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
@@ -1173,7 +1173,7 @@ export default function DisciplinePage() {
                   onClick={() =>
                     setVisibleCount((c) => Math.min(c + PAGE_SIZE, activeList.length))
                   }
-                  className="w-full card-solid px-5 py-3 text-sm font-medium text-teal-600 hover:border-teal-300 hover:bg-teal-50 transition-all cursor-pointer"
+                  className="w-full card-solid px-5 py-3 text-sm font-medium text-accent hover:border-accent hover:bg-accent/10 transition-all cursor-pointer"
                 >
                   Load more records ({activeList.length - visibleCount} remaining)
                 </button>
@@ -1253,14 +1253,14 @@ export default function DisciplinePage() {
             <button
               onClick={handleClearStrikes}
               disabled={clearing || !clearPassword.trim() || !clearConfirmed}
-              className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              className="btn-danger flex-1 px-4 py-2.5"
             >
               {clearing ? "Clearing..." : "Delete All Strikes"}
             </button>
             <button
               onClick={() => setClearModalOpen(false)}
               disabled={clearing}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+              className="btn-secondary flex-1 px-4 py-2.5"
             >
               Cancel
             </button>

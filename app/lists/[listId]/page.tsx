@@ -439,7 +439,7 @@ export default function ListDetailPage() {
           {/* Back link */}
           <a
             href="/lists"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-accent transition-colors w-fit"
           >
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -455,7 +455,7 @@ export default function ListDetailPage() {
                   <div className={`w-3.5 h-3.5 rounded-full ${
                     list!.active ? "bg-emerald-400" : "bg-gray-300"
                   }`} />
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+                  <h1 className="page-title">
                     {list!.title}
                   </h1>
                 </div>
@@ -472,7 +472,7 @@ export default function ListDetailPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setAddModalOpen(true)}
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all flex items-center gap-1.5"
+                  className="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all flex items-center gap-1.5"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -486,7 +486,7 @@ export default function ListDetailPage() {
                       className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all ${
                         selectMode
                           ? "bg-gray-200 hover:bg-gray-300 text-slate-700"
-                          : "bg-white border border-gray-300 hover:border-teal-400 hover:text-teal-600 text-slate-700"
+                          : "bg-surface border border-hairline hover:border-accent hover:text-accent text-label"
                       }`}
                     >
                       {selectMode ? "Cancel" : "Select"}
@@ -532,9 +532,9 @@ export default function ListDetailPage() {
 
           {/* Selection action bar */}
           {selectMode && (
-            <div className="bg-white rounded-xl shadow-sm border border-teal-200 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="bg-surface rounded-xl shadow-sm border border-accent/25 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="w-6 h-6 bg-teal-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                <span className="w-6 h-6 bg-accent text-white rounded-full flex items-center justify-center text-xs font-bold">
                   {selectedIds.length}
                 </span>
                 <span className="text-sm font-medium text-slate-900">
@@ -544,7 +544,7 @@ export default function ListDetailPage() {
                 </span>
                 <button
                   onClick={toggleSelectAll}
-                  className="text-xs font-medium text-teal-600 hover:text-teal-800 transition-colors"
+                  className="text-xs font-medium text-accent hover:text-accent-hover transition-colors"
                 >
                   {selectedIds.length === students.length
                     ? "Deselect all"
@@ -614,9 +614,9 @@ export default function ListDetailPage() {
                     className={`bg-white rounded-xl shadow-sm border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all group ${
                       selectMode
                         ? isSelected
-                          ? "border-teal-400 ring-2 ring-teal-200 cursor-pointer"
-                          : "border-slate-100 hover:border-teal-300 cursor-pointer"
-                        : "border-slate-100 hover:border-teal-300 hover:shadow-md cursor-pointer"
+                          ? "border-accent ring-2 ring-accent/25 cursor-pointer"
+                          : "border-slate-100 hover:border-accent cursor-pointer"
+                        : "border-slate-100 hover:border-accent hover:shadow-md cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -624,7 +624,7 @@ export default function ListDetailPage() {
                         <div
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                             isSelected
-                              ? "bg-teal-600 border-teal-600 text-white"
+                              ? "bg-accent border-accent text-white"
                               : "border-gray-300 bg-white"
                           }`}
                         >
@@ -639,7 +639,7 @@ export default function ListDetailPage() {
                         {student["Name with Initials"].charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate group-hover:text-teal-600 transition-colors">
+                        <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate group-hover:text-accent transition-colors">
                           {student["Name with Initials"]}
                         </h3>
                         <p className="text-xs sm:text-sm text-slate-500">
@@ -702,7 +702,7 @@ export default function ListDetailPage() {
             id="bulk-strike-category"
             value={strikeType}
             onChange={(e) => setStrikeType(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
           >
             <option value="grooming">Personal Grooming</option>
             <option value="repeated-punish">Repeated punishment</option>
@@ -715,14 +715,14 @@ export default function ListDetailPage() {
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleBulkAddStrike}
             disabled={submitting}
           >
             {submitting ? "Saving..." : "Save"}
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setBulkStrikeModalOpen(false)}
           >
             Discard
@@ -780,21 +780,21 @@ export default function ListDetailPage() {
               onChange={(e) => setBulkPromptIssuedBy(e.target.value)}
               placeholder="Enter your name"
               autoFocus
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={confirmBulkPrompt}
               disabled={bulkPromptBusy || !bulkPromptIssuedBy.trim()}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              className="btn-danger flex-1 px-4 py-2.5"
             >
               {bulkPromptBusy ? "Saving..." : "Create Black Marks"}
             </button>
             <button
               onClick={dismissBulkPrompt}
               disabled={bulkPromptBusy}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+              className="btn-secondary flex-1 px-4 py-2.5"
             >
               Dismiss
             </button>
@@ -826,7 +826,7 @@ export default function ListDetailPage() {
               id="bulk-bm-reason"
               value={blackmarkReason}
               onChange={(e) => setBlackmarkReason(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="grooming">Personal Grooming</option>
               <option value="repeated-punish">Repeated punishment</option>
@@ -850,20 +850,20 @@ export default function ListDetailPage() {
               type="text"
               id="bulk-issuer"
               placeholder="Enter your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleBulkAddBlackmark}
             disabled={submitting}
           >
             {submitting ? "Saving..." : "Save"}
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setBulkBlackMarkModalOpen(false)}
           >
             Discard
@@ -905,13 +905,13 @@ export default function ListDetailPage() {
                 onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
                 placeholder="Enter Admission No"
                 type="number"
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
               />
             </div>
             <button
               onClick={handleSearch}
               disabled={searching || !searchQuery.trim()}
-              className="bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              className="bg-accent hover:bg-accent-hover disabled:bg-accent/40 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
             >
               {searching ? "..." : "Search"}
             </button>
@@ -923,7 +923,7 @@ export default function ListDetailPage() {
               {searchResult ? (
                 <div className="flex items-center justify-between bg-slate-50 border border-slate-200/70 rounded-xl px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
                       {searchResult["Name with Initials"].charAt(0)}
                     </div>
                     <div>

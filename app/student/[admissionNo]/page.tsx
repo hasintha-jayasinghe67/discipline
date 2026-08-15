@@ -444,7 +444,7 @@ export default function StudentDetailPage() {
           {/* Back link */}
           <a
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-teal-600 transition-colors w-fit"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-accent transition-colors w-fit"
           >
             <svg
               className="w-3.5 h-3.5 sm:w-4 sm:h-4"
@@ -468,7 +468,7 @@ export default function StudentDetailPage() {
                 {studentName.charAt(0)}
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+                <h1 className="page-title">
                   {studentName}
                 </h1>
                 <p className="text-slate-500 flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1 mt-1 text-xs sm:text-sm">
@@ -956,21 +956,21 @@ export default function StudentDetailPage() {
               onChange={(e) => setPromptIssuedBy(e.target.value)}
               placeholder="Enter your name"
               autoFocus
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div className="flex w-full gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={confirmBlackmarkPrompt}
               disabled={promptBusy || !promptIssuedBy.trim()}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+              className="btn-danger flex-1 px-4 py-2.5"
             >
               {promptBusy ? "Saving..." : "Create Black Mark"}
             </button>
             <button
               onClick={dismissBlackmarkPrompt}
               disabled={promptBusy}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+              className="btn-secondary flex-1 px-4 py-2.5"
             >
               Dismiss
             </button>
@@ -996,7 +996,7 @@ export default function StudentDetailPage() {
             id="detail-strike-category"
             value={strikeType}
             onChange={(e) => setStrikeType(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
           >
             <option value="grooming">Personal Grooming</option>
             <option value="repeated-punish">Repeated punishment</option>
@@ -1009,13 +1009,13 @@ export default function StudentDetailPage() {
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleAddStrike}
           >
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setStrikeModalOpen(false)}
           >
             Discard
@@ -1046,7 +1046,7 @@ export default function StudentDetailPage() {
               id="detail-bm-reason"
               value={blackmarkReason}
               onChange={(e) => setBlackmarkReason(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="grooming">Personal Grooming</option>
               <option value="repeated-punish">Repeated punishment</option>
@@ -1067,19 +1067,19 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-issuer"
               placeholder="Enter your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleAddBlackmark}
           >
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setBlackmarkModalOpen(false)}
           >
             Discard
@@ -1110,7 +1110,7 @@ export default function StudentDetailPage() {
               id="detail-gm-reason"
               value={goldMarkReason}
               onChange={(e) => setGoldMarkReason(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="good-behavior">Good Behavior</option>
               <option value="giving-back">Giving Back to College</option>
@@ -1127,19 +1127,19 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-gm-issuer"
               placeholder="Enter your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleAddGoldMark}
           >
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setGoldMarkModalOpen(false)}
           >
             Discard
@@ -1166,7 +1166,7 @@ export default function StudentDetailPage() {
               id="detail-punishment-type"
               value={punishmentType}
               onChange={(e) => setPunishmentType(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="detention">Detention</option>
               <option value="weekend-duty">Weekend Duty</option>
@@ -1184,7 +1184,7 @@ export default function StudentDetailPage() {
               onChange={(e) => setPunishmentReason(e.target.value)}
               placeholder="Describe the punishment..."
               rows={3}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white resize-none"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white resize-none"
             />
           </div>
           <div>
@@ -1197,19 +1197,19 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-punishment-assignedby"
               placeholder="Enter your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleAddPunishment}
           >
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setPunishmentModalOpen(false)}
           >
             Discard
@@ -1238,7 +1238,7 @@ export default function StudentDetailPage() {
               type="text"
               id="detail-commentor"
               placeholder="Your name"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div>
@@ -1251,19 +1251,19 @@ export default function StudentDetailPage() {
               id="detail-comment-text"
               placeholder="Write your comment..."
               rows={3}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white resize-none"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white resize-none"
             />
           </div>
         </div>
         <div className="flex w-full gap-2 mt-5 pt-4 border-t border-slate-100">
           <button
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
             onClick={handleAddComment}
           >
             Save
           </button>
           <button
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
             onClick={() => setCommentModalOpen(false)}
           >
             Discard

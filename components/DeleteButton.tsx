@@ -17,7 +17,7 @@ export default function DeleteButton({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className={`shrink-0 text-gray-300 hover:text-red-600 transition-colors ${className}`}
+      className={`shrink-0 text-label-tertiary hover:text-destructive transition-colors ${className}`}
     >
       <svg
         className="w-4 h-4"

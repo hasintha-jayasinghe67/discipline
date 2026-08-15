@@ -186,8 +186,8 @@ export default function UsersPage() {
       <div className="page-shell">
         <div className="max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">User Management</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <h1 className="page-title">User Management</h1>
+            <p className="page-subtitle mt-0.5">
               {isSuperuser(currentUser)
                 ? "Add, edit, or delete users"
                 : "View all users (read-only)"}
@@ -217,7 +217,7 @@ export default function UsersPage() {
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder="Username"
-                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                 />
               </div>
               <div className="flex-1">
@@ -230,7 +230,7 @@ export default function UsersPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                 />
               </div>
               <div className="w-full sm:w-32">
@@ -241,7 +241,7 @@ export default function UsersPage() {
                   id="new-role"
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as Role)}
-                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-teal-400 focus:bg-white"
+                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 focus:border-accent focus:bg-white"
                 >
                   <option value="superuser">Superuser</option>
                   <option value="admin">Admin</option>
@@ -251,7 +251,7 @@ export default function UsersPage() {
               <button
                 onClick={handleAddUser}
                 disabled={adding || !newUsername.trim() || !newPassword.trim()}
-                className="bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white font-medium px-5 py-2 rounded-lg text-sm shadow-sm transition-all whitespace-nowrap"
+                className="bg-accent hover:bg-accent-hover disabled:bg-accent/40 text-white font-medium px-5 py-2 rounded-lg text-sm shadow-sm transition-all whitespace-nowrap"
               >
                 {adding ? "Adding..." : "Add User"}
               </button>
@@ -291,7 +291,7 @@ export default function UsersPage() {
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {u.username}
                         {u.id === currentUser?.id && (
-                          <span className="ml-2 text-[10px] bg-teal-100 text-teal-700 font-semibold px-1.5 py-0.5 rounded-full">You</span>
+                          <span className="ml-2 text-[10px] bg-accent/15 text-accent font-semibold px-1.5 py-0.5 rounded-full">You</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -315,7 +315,7 @@ export default function UsersPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => openEditModal(u)}
-                              className="text-xs font-medium text-teal-600 hover:text-teal-800 transition-colors"
+                              className="text-xs font-medium text-accent hover:text-accent-hover transition-colors"
                             >
                               Edit
                             </button>
@@ -353,7 +353,7 @@ export default function UsersPage() {
               type="text"
               value={editUsername}
               onChange={(e) => setEditUsername(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             />
           </div>
           <div>
@@ -366,7 +366,7 @@ export default function UsersPage() {
               value={editPassword}
               onChange={(e) => setEditPassword(e.target.value)}
               placeholder="Leave blank to keep current"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div>
@@ -377,7 +377,7 @@ export default function UsersPage() {
               id="edit-role"
               value={editRole}
               onChange={(e) => setEditRole(e.target.value as Role)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-teal-400 focus:bg-white"
+              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
             >
               <option value="superuser">Superuser</option>
               <option value="admin">Admin</option>
@@ -389,13 +389,13 @@ export default function UsersPage() {
           <button
             onClick={handleSaveEdit}
             disabled={savingEdit || !editUsername.trim()}
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all"
+            className="btn-primary flex-1 px-4 py-2.5"
           >
             {savingEdit ? "Saving..." : "Save"}
           </button>
           <button
             onClick={() => setEditUser(null)}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-slate-700 font-medium px-4 py-2.5 rounded-lg transition-all"
+            className="btn-secondary flex-1 px-4 py-2.5"
           >
             Cancel
           </button>

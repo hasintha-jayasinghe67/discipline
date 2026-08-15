@@ -108,8 +108,8 @@ export default function ListsOverviewPage() {
           {/* Header row */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Lists</h1>
-              <p className="text-sm text-slate-500 mt-1">
+              <h1 className="page-title">Lists</h1>
+              <p className="page-subtitle mt-1">
                 {activeLists.length} active, {inactiveLists.length} inactive
               </p>
             </div>
@@ -145,7 +145,7 @@ export default function ListsOverviewPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search lists by title..."
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-teal-400 focus:bg-white"
+                className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200/70 rounded-xl text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
               />
             </div>
 
@@ -161,7 +161,7 @@ export default function ListsOverviewPage() {
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-slate-900 focus:border-teal-400 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-slate-900 focus:border-accent focus:bg-white"
                   />
                 </label>
                 <label className="flex items-center gap-2 flex-1">
@@ -170,7 +170,7 @@ export default function ListsOverviewPage() {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-slate-900 focus:border-teal-400 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-slate-900 focus:border-accent focus:bg-white"
                   />
                 </label>
               </div>
@@ -181,7 +181,7 @@ export default function ListsOverviewPage() {
                     setDateFrom("");
                     setDateTo("");
                   }}
-                  className="text-xs sm:text-sm text-teal-600 hover:text-teal-800 font-medium transition-colors shrink-0"
+                  className="text-xs sm:text-sm text-accent hover:text-accent-hover font-medium transition-colors shrink-0"
                 >
                   Clear filters
                 </button>
@@ -198,8 +198,8 @@ export default function ListsOverviewPage() {
                   onClick={() => setSortBy("newest")}
                   className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
                     sortBy === "newest"
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
+                      ? "bg-accent text-white shadow-sm"
+                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-accent"
                   }`}
                 >
                   Newest
@@ -208,8 +208,8 @@ export default function ListsOverviewPage() {
                   onClick={() => setSortBy("oldest")}
                   className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
                     sortBy === "oldest"
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
+                      ? "bg-accent text-white shadow-sm"
+                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-accent"
                   }`}
                 >
                   Oldest
@@ -218,8 +218,8 @@ export default function ListsOverviewPage() {
                   onClick={() => setSortBy("students")}
                   className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all ${
                     sortBy === "students"
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-teal-300"
+                      ? "bg-accent text-white shadow-sm"
+                      : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-accent"
                   }`}
                 >
                   Most students
@@ -234,7 +234,7 @@ export default function ListsOverviewPage() {
               <button
                 onClick={() => setShowInactive(!showInactive)}
                 className={`relative w-10 h-5 rounded-full transition-colors ${
-                  showInactive ? "bg-teal-500" : "bg-gray-300"
+                  showInactive ? "bg-accent" : "bg-fill"
                 }`}
               >
                 <span
@@ -290,7 +290,7 @@ export default function ListsOverviewPage() {
                 <button
                   key={list.id}
                   onClick={() => router.push(`/lists/${list.id}`)}
-                  className="text-left card-solid p-4 sm:p-5 hover:shadow-md hover:border-slate-200 transition-all cursor-pointer"
+                  className="text-left card-solid p-4 sm:p-5 hover:shadow-md hover:border-hairline transition-all cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">

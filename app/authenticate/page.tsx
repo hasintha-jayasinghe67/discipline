@@ -27,21 +27,20 @@ export default function AuthenticatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background accents */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-10%,rgba(13,148,136,0.25),transparent)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_80%_100%,rgba(8,145,178,0.15),transparent)]" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Subtle top material tint */}
+      <div className="absolute inset-0 bg-[radial-gradient(80%_45%_at_50%_-5%,rgba(0,122,255,0.07),transparent)]" />
 
-      <div className="w-full max-w-sm relative z-10">
+      <div className="w-full max-w-sm relative z-10 flex flex-col gap-6">
         {/* Branding */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4 ring-2 ring-teal-400/30 shadow-xl shadow-teal-500/10">
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-[22%] overflow-hidden mx-auto mb-5 shadow-lg shadow-black/10 ring-1 ring-black/5">
             <img src="/ICON.jpeg" alt="Prefects Discipline" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">
+          <h1 className="text-label text-[28px] font-bold tracking-tight">
             Prefects Discipline
           </h1>
-          <p className="text-slate-400 text-sm mt-1.5">
+          <p className="text-label-secondary text-[15px] mt-1">
             Sign in to access the dashboard
           </p>
         </div>
@@ -49,10 +48,10 @@ export default function AuthenticatePage() {
         {/* Login Form */}
         <form
           onSubmit={handleSubmit}
-          className="card-solid p-6 sm:p-8 flex flex-col gap-4 shadow-2xl shadow-slate-900/40"
+          className="card-solid p-6 sm:p-7 flex flex-col gap-4 rounded-3xl"
         >
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="username" className="block text-[13px] font-medium text-label-secondary mb-1.5">
               Username
             </label>
             <input
@@ -63,12 +62,13 @@ export default function AuthenticatePage() {
               placeholder="Enter your username"
               required
               autoFocus
-              className="input-field"
+              autoComplete="username"
+              className="input-field rounded-xl py-3"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="password" className="block text-[13px] font-medium text-label-secondary mb-1.5">
               Password
             </label>
             <input
@@ -78,7 +78,8 @@ export default function AuthenticatePage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              className="input-field"
+              autoComplete="current-password"
+              className="input-field rounded-xl py-3"
             />
           </div>
 
@@ -94,7 +95,7 @@ export default function AuthenticatePage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary px-4 py-2.5 flex items-center justify-center gap-2"
+            className="w-full btn-primary px-4 py-3 rounded-xl text-[15px] font-semibold mt-1"
           >
             {loading ? (
               <>
