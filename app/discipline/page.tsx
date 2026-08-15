@@ -290,7 +290,7 @@ export default function DisciplinePage() {
   };
 
   const handleClearStrikes = async () => {
-    if (!isSuperuser(user) || clearing) return;
+    if (!isSuperuser(user) || !user || clearing) return;
     setClearing(true);
     setClearError("");
     try {
