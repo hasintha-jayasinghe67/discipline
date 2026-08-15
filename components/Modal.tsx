@@ -34,7 +34,7 @@ export default function Modal({
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="m-auto p-0 rounded-[20px] bg-surface border border-hairline shadow-sheet max-w-md w-[calc(100%-2rem)] sm:w-full"
+      className="m-auto p-0 rounded-[20px] bg-surface/70 backdrop-blur-xl backdrop-saturate-150 border border-hairline shadow-sheet max-w-md w-[calc(100%-2rem)] sm:w-full"
     >
       <div className="p-5 sm:p-6 flex flex-col gap-4">
         {/* Sheet grabber */}
