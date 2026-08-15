@@ -523,7 +523,11 @@ export default function ListDetailPage() {
                 </button>
               </div>
             </div>
-            <ListAttendanceSummary summaries={attendanceSummaries} />
+            <ListAttendanceSummary
+              listId={list!.id}
+              summaries={attendanceSummaries}
+            />
+         
           </div>
 
           {/* Selection action bar */}

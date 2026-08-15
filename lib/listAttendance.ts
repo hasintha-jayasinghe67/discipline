@@ -147,6 +147,30 @@ export async function fetchAttendanceSession(
   };
 }
 
+export async function fetchAttendanceSessionById(
+  sessionId: number
+): Promise<{ session: AttendanceSession | null; records: AttendanceRecord[] }> {
+  const { data: sessions } = await supabase
+    .from("list_attendance_sessions")
+    .select()
+    .eq("id", sessionId);
+
+  if (!sessions || sessions.length === 0) {
+    return { session: null, records: [] };
+  }
+
+  const session = sessions[0] as AttendanceSession;
+  const { data: records } = await supabase
+    .from("list_attendance_records")
+    .select()
+    .eq("session_id", session.id);
+
+  return {
+    session,
+    records: (records || []) as AttendanceRecord[],
+  };
+}
+
 export async function saveAttendanceSession(
   listId: number,
   sessionDate: string,

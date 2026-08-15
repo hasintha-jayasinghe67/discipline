@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   AttendanceSessionSummary,
   AttendanceStatus,
@@ -18,12 +19,16 @@ const STATUS_ORDER: AttendanceStatus[] = [
 ];
 
 interface ListAttendanceSummaryProps {
+  listId: number;
   summaries: AttendanceSessionSummary[];
 }
 
 export default function ListAttendanceSummary({
+  listId,
   summaries,
 }: ListAttendanceSummaryProps) {
+  const router = useRouter();
+
   if (summaries.length === 0) return null;
 
   const today = todayDateString();
@@ -39,15 +44,17 @@ export default function ListAttendanceSummary({
         );
 
         return (
-          <div
+          <button
             key={session.id}
-            className={`text-xs sm:text-sm leading-relaxed ${
-              isToday
-                ? "text-slate-700"
-                : "text-slate-500"
+            type="button"
+            onClick={() =>
+              router.push(`/lists/${listId}/attendance/${session.id}`)
+            }
+            className={`text-left text-xs sm:text-sm leading-relaxed rounded-lg px-2.5 py-2 -mx-1 transition-all hover:bg-slate-50 hover:ring-1 hover:ring-slate-200 group ${
+              isToday ? "text-slate-700" : "text-slate-500"
             }`}
           >
-            <span className="font-medium text-slate-800">
+            <span className="font-medium text-slate-800 group-hover:text-sky-700 transition-colors">
               {isToday ? "Today's attendance" : "Attendance"} ·{" "}
               {formatSessionDate(session.session_date)}
             </span>
@@ -78,7 +85,22 @@ export default function ListAttendanceSummary({
                   minute: "2-digit",
                 })}`}
             </span>
-          </div>
+            <span className="inline-flex items-center ml-1.5 text-slate-400 group-hover:text-sky-500 transition-colors align-middle">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </span>
+          </button>
         );
       })}
     </div>
