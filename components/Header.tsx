@@ -3,22 +3,30 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useTheme } from "@/lib/theme";
+
 export default () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const isAdmin = isAdminOrAbove(user);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && !userMenuOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
+        setUserMenuOpen(false);
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        setUserMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
@@ -26,7 +34,7 @@ export default () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [menuOpen]);
+  }, [menuOpen, userMenuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -38,6 +46,57 @@ export default () => {
 
   const menuItemClass =
     "block w-full text-left px-4 py-2.5 text-sm font-medium text-label hover:text-label hover:bg-fill rounded-lg transition-colors";
+
+  const sunIcon = (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+      />
+    </svg>
+  );
+
+  const moonIcon = (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+      />
+    </svg>
+  );
+
+  const logoutIcon = (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+      />
+    </svg>
+  );
 
   return (
     <header
@@ -82,34 +141,72 @@ export default () => {
             Dashboard
           </a>
           {user && (
-            <>
-              <span className="hidden lg:inline-flex items-center gap-1.5 text-xs font-medium text-label-secondary select-none shrink-0 px-2">
-                <span className="w-6 h-6 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-semibold">
-                  {user.username.charAt(0).toUpperCase()}
-                </span>
-                {user.username}
-              </span>
+            <div className="relative ml-1 shrink-0">
               <button
-                onClick={handleLogout}
-                className="inline-flex items-center gap-1.5 text-destructive hover:text-destructive-hover text-xs sm:text-sm font-semibold px-3.5 py-1.5 rounded-full transition-colors shrink-0 ml-1 hover:bg-destructive/10"
+                onClick={() => setUserMenuOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+                aria-label={`Account menu for ${user.username}`}
+                title={user.username}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center text-xs sm:text-sm font-semibold ring-1 ring-black/5 hover:ring-accent/40 transition-all select-none"
               >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-                Logout
+                {user.username.charAt(0).toUpperCase()}
               </button>
-            </>
+
+              {userMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Account menu"
+                  className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-hairline bg-surface shadow-sheet overflow-hidden animate-[menu-in_0.15s_ease-out]"
+                >
+                  <div className="flex items-center gap-3 px-4 py-3 border-b border-hairline">
+                    <span className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center text-sm font-semibold shrink-0">
+                      {user.username.charAt(0).toUpperCase()}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-label truncate">
+                        {user.username}
+                      </p>
+                      <p className="text-xs text-label-tertiary">Signed in</p>
+                    </div>
+                  </div>
+
+                  <div className="p-1.5">
+                    <button
+                      role="menuitem"
+                      onClick={toggleTheme}
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm font-medium text-label hover:bg-fill rounded-lg transition-colors"
+                    >
+                      <span className="inline-flex items-center gap-2.5">
+                        {theme === "dark" ? moonIcon : sunIcon}
+                        Dark mode
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${
+                          theme === "dark" ? "bg-accent" : "bg-fill"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${
+                            theme === "dark" ? "left-[18px]" : "left-0.5"
+                          }`}
+                        />
+                      </span>
+                    </button>
+
+                    <button
+                      role="menuitem"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-destructive hover:text-destructive-hover hover:bg-destructive/10 rounded-lg transition-colors"
+                    >
+                      {logoutIcon}
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </nav>
 
@@ -159,17 +256,22 @@ export default () => {
             </a>
           </div>
           {user && (
-            <div className="mt-2 border-t border-hairline pt-2 px-2 flex flex-col gap-2">
-              <span className="text-xs text-label-tertiary select-none px-2">
+            <div className="mt-2 border-t border-hairline pt-2 px-2 flex flex-col gap-1">
+              <span className="text-xs text-label-tertiary select-none px-2 pb-1">
                 Signed in as {user.username}
               </span>
               <button
-                onClick={handleLogout}
-                className="inline-flex items-center justify-center gap-1.5 text-destructive hover:text-destructive-hover text-sm font-semibold px-4 py-2 rounded-lg hover:bg-destructive/10 transition-colors"
+                onClick={toggleTheme}
+                className="inline-flex items-center gap-2.5 text-label text-sm font-medium px-4 py-2 rounded-lg hover:bg-fill transition-colors"
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
+                {theme === "dark" ? moonIcon : sunIcon}
+                {theme === "dark" ? "Dark mode" : "Light mode"}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2.5 text-destructive hover:text-destructive-hover text-sm font-semibold px-4 py-2 rounded-lg hover:bg-destructive/10 transition-colors"
+              >
+                {logoutIcon}
                 Logout
               </button>
             </div>

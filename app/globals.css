@@ -7,7 +7,7 @@
    ========================================================================== */
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Surfaces (systemGroupedBackground / systemBackground / systemFill) */
   --background: #f2f2f7;
@@ -45,36 +45,36 @@
   --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #000000;
-    --surface: #1c1c1e;
-    --surface-secondary: #2c2c2e;
-    --fill: rgba(120, 120, 128, 0.36);
-    --fill-secondary: rgba(120, 120, 128, 0.18);
-    --hairline: rgba(84, 84, 88, 0.42);
-    --hairline-strong: rgba(84, 84, 88, 0.6);
+:root[data-theme="dark"] {
+  color-scheme: dark;
 
-    --label: #ffffff;
-    --label-secondary: rgba(235, 235, 245, 0.6);
-    --label-tertiary: rgba(235, 235, 245, 0.3);
+  --background: #000000;
+  --surface: #1c1c1e;
+  --surface-secondary: #2c2c2e;
+  --fill: rgba(120, 120, 128, 0.36);
+  --fill-secondary: rgba(120, 120, 128, 0.18);
+  --hairline: rgba(84, 84, 88, 0.42);
+  --hairline-strong: rgba(84, 84, 88, 0.6);
 
-    --accent: #0a84ff;
-    --accent-hover: #2f95ff;
-    --accent-pressed: #5aa7ff;
-    --destructive: #ff453a;
-    --destructive-hover: #ff6961;
+  --label: #ffffff;
+  --label-secondary: rgba(235, 235, 245, 0.6);
+  --label-tertiary: rgba(235, 235, 245, 0.3);
 
-    --shadow-card:
-      0 1px 2px rgba(0, 0, 0, 0.5),
-      0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-card-hover:
-      0 2px 6px rgba(0, 0, 0, 0.5),
-      0 12px 32px rgba(0, 0, 0, 0.5);
-    --shadow-sheet:
-      0 0 0 1px rgba(255, 255, 255, 0.04),
-      0 24px 80px rgba(0, 0, 0, 0.6);
-  }
+  --accent: #0a84ff;
+  --accent-hover: #2f95ff;
+  --accent-pressed: #5aa7ff;
+  --destructive: #ff453a;
+  --destructive-hover: #ff6961;
+
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-sheet:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 24px 80px rgba(0, 0, 0, 0.6);
 }
 
 /* Semantic utilities (Tailwind v4: --color-* generates bg/text/border/… classes) */
@@ -362,10 +362,8 @@ dialog::backdrop {
   -webkit-backdrop-filter: blur(12px) saturate(140%);
 }
 
-@media (prefers-color-scheme: dark) {
-  dialog::backdrop {
-    background: rgba(0, 0, 0, 0.55);
-  }
+:root[data-theme="dark"] dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
 }
 
 dialog[open] {
@@ -424,10 +422,11 @@ dialog[open] {
    --------------------------------------------------------------------------
    The app's markup uses Tailwind slate/gray/white utilities and tinted
    chips. These overrides re-map them to the dark palette so the whole app
-   follows the system appearance. Unlayered rules win over @layer utilities.
+   follows the active theme (data-theme on <html>). Unlayered rules win over
+   @layer utilities.
    ========================================================================== */
 
-@media (prefers-color-scheme: dark) {
+:root[data-theme="dark"] {
   /* Text */
   .text-slate-900,
   .text-slate-800,
