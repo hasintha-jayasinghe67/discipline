@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/theme";
@@ -13,6 +13,117 @@ export default () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const { theme, toggleTheme } = useTheme();
+
+  // --- Privacy screen: tapping the logo grows it to the center of a heavily
+  // frosted overlay so the app contents are quickly hidden (admin/superuser only) ---
+  const canHide = isAdminOrAbove(user);
+  const logoIconRef = useRef<HTMLDivElement>(null);
+  const [privacyActive, setPrivacyActive] = useState(false);
+  const [privacyOrigin, setPrivacyOrigin] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  // "expanding" = icon sits at its header spot, "shown" = it has grown to center,
+  // "collapsing" = animating back to the header before unmounting.
+  const [privacyPhase, setPrivacyPhase] = useState<
+    "idle" | "expanding" | "shown" | "collapsing"
+  >("idle");
+  const [privacyTarget, setPrivacyTarget] = useState<{
+    x: number;
+    y: number;
+    scale: number;
+  } | null>(null);
+
+  const revealPrivacy = useCallback(() => {
+    const rect = logoIconRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setMenuOpen(false);
+    setUserMenuOpen(false);
+    setPrivacyOrigin({
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    });
+    setPrivacyActive(true);
+    setPrivacyPhase("expanding");
+  }, []);
+
+  const dismissPrivacy = () => {
+    if (privacyPhase === "shown") setPrivacyPhase("collapsing");
+  };
+
+  // Compute how far the icon must translate/scale to reach the viewport center.
+  useEffect(() => {
+    if (!privacyActive || !privacyOrigin) return;
+    const size = Math.min(window.innerWidth * 0.5, window.innerHeight * 0.5, 280);
+    const scale = size / privacyOrigin.width;
+    const x = window.innerWidth / 2 - (privacyOrigin.left + privacyOrigin.width / 2);
+    const y = window.innerHeight / 2 - (privacyOrigin.top + privacyOrigin.height / 2);
+    setPrivacyTarget({ x, y, scale });
+  }, [privacyActive, privacyOrigin]);
+
+  // Flip to the centered state on the next frame so the transform transition runs.
+  useEffect(() => {
+    if (privacyPhase !== "expanding") return;
+    const raf = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setPrivacyPhase("shown"))
+    );
+    return () => cancelAnimationFrame(raf);
+  }, [privacyPhase]);
+
+  // Unmount shortly after the collapsing animation finishes.
+  useEffect(() => {
+    if (privacyPhase !== "collapsing") return;
+    const t = setTimeout(() => {
+      setPrivacyActive(false);
+      setPrivacyPhase("idle");
+      setPrivacyOrigin(null);
+      setPrivacyTarget(null);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [privacyPhase]);
+
+  // Lock page scrolling while the privacy overlay is up.
+  useEffect(() => {
+    if (!privacyActive) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [privacyActive]);
+
+  // Escape dismisses the overlay.
+  useEffect(() => {
+    if (!privacyActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPrivacyPhase((p) => (p === "shown" ? "collapsing" : p));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [privacyActive]);
+
+  // Ctrl/Cmd+H toggles the privacy screen (admin/superuser only).
+  useEffect(() => {
+    if (!canHide) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "h") {
+        e.preventDefault();
+        if (privacyPhase === "shown") {
+          setPrivacyPhase("collapsing");
+        } else {
+          revealPrivacy();
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canHide, privacyPhase, revealPrivacy]);
 
   useEffect(() => {
     if (!menuOpen && !userMenuOpen) return;
@@ -99,17 +210,47 @@ export default () => {
   );
 
   return (
+    <>
     <header
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-hairline bg-surface/70 backdrop-blur-xl backdrop-saturate-150"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
         <a href="/" className="flex items-center gap-2.5 sm:gap-3 min-w-0 group">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[22%] overflow-hidden shrink-0 shadow-sm ring-1 ring-black/5 group-hover:ring-accent/40 transition-all">
+          <div
+            ref={logoIconRef}
+            role={canHide ? "button" : undefined}
+            tabIndex={canHide ? 0 : undefined}
+            aria-label={canHide ? "Hide screen contents" : undefined}
+            title={canHide ? "Tap to hide screen" : undefined}
+            onClick={
+              canHide
+                ? (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    revealPrivacy();
+                  }
+                : undefined
+            }
+            onKeyDown={
+              canHide
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      revealPrivacy();
+                    }
+                  }
+                : undefined
+            }
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-[22%] overflow-hidden shrink-0 shadow-sm ring-1 ring-black/5 group-hover:ring-accent/40 transition-all ${
+              canHide ? "cursor-pointer select-none" : ""
+            }`}
+          >
             <img
               src="/ICON.jpeg"
               alt="Prefects Discipline"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover pointer-events-none select-none"
+              draggable={false}
             />
           </div>
           <div className="min-w-0">
@@ -279,5 +420,61 @@ export default () => {
         </nav>
       )}
     </header>
+
+      {/* Privacy overlay — tap the logo to hide the app contents */}
+      {privacyActive && privacyOrigin && (
+        <div
+          onClick={dismissPrivacy}
+          role="button"
+          aria-label="Screen hidden — tap to dismiss"
+          className="fixed inset-0 z-[100]"
+          style={{
+            opacity: privacyPhase === "shown" ? 1 : 0,
+            transition: "opacity 0.25s ease",
+            backgroundColor:
+              "color-mix(in srgb, var(--surface) 22%, transparent)",
+            backdropFilter: "blur(48px) saturate(160%)",
+            WebkitBackdropFilter: "blur(48px) saturate(160%)",
+            cursor: "pointer",
+          }}
+        >
+          <div
+            className="absolute overflow-hidden rounded-[22%] shadow-card ring-1 ring-black/10"
+            style={{
+              left: privacyOrigin.left,
+              top: privacyOrigin.top,
+              width: privacyOrigin.width,
+              height: privacyOrigin.height,
+              transform:
+                privacyTarget && privacyPhase === "shown"
+                  ? `translate(${privacyTarget.x}px, ${privacyTarget.y}px) scale(${privacyTarget.scale})`
+                  : "none",
+              transformOrigin: "center center",
+              transition: "transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)",
+              willChange: "transform",
+            }}
+          >
+            <img
+              src="/ICON.jpeg"
+              alt=""
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </div>
+
+          <div
+            className="absolute inset-x-0 bottom-16 text-center pointer-events-none"
+            style={{
+              opacity: privacyPhase === "shown" ? 1 : 0,
+              transition: "opacity 0.3s ease 0.4s",
+            }}
+          >
+            <span className="text-xs sm:text-sm font-medium text-label-secondary tracking-wide">
+              Tap anywhere to dismiss
+            </span>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
