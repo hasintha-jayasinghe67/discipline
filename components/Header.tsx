@@ -2,8 +2,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/theme";
+import UploadStudentsModal from "@/components/UploadStudentsModal";
 
 export default () => {
   const { user, logout } = useAuth();
@@ -11,6 +12,7 @@ export default () => {
   const isAdmin = isAdminOrAbove(user);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -313,6 +315,33 @@ export default () => {
                   </div>
 
                   <div className="p-1.5">
+                    {isSuperuser(user) && (
+                      <button
+                        role="menuitem"
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          setUploadModalOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-label hover:bg-fill rounded-lg transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          />
+                        </svg>
+                        Upload Student Details
+                      </button>
+                    )}
+
                     <button
                       role="menuitem"
                       onClick={toggleTheme}
@@ -401,6 +430,31 @@ export default () => {
               <span className="text-xs text-label-tertiary select-none px-2 pb-1">
                 Signed in as {user.username}
               </span>
+              {isSuperuser(user) && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setUploadModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2.5 text-label text-sm font-medium px-4 py-2 rounded-lg hover:bg-fill transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  Upload Student Details
+                </button>
+              )}
               <button
                 onClick={toggleTheme}
                 className="inline-flex items-center gap-2.5 text-label text-sm font-medium px-4 py-2 rounded-lg hover:bg-fill transition-colors"
@@ -474,6 +528,14 @@ export default () => {
             </span>
           </div>
         </div>
+      )}
+
+      {/* Upload students modal (superuser only) */}
+      {isSuperuser(user) && (
+        <UploadStudentsModal
+          isOpen={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+        />
       )}
     </>
   );
