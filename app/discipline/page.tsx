@@ -7,8 +7,10 @@ import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 import GenerateReportModal from "@/components/GenerateReportModal";
+import UploadStudentsModal from "@/components/UploadStudentsModal";
 import ConfirmPasswordModal from "@/components/ConfirmPasswordModal";
 import DeleteButton from "@/components/DeleteButton";
+import PasswordInput from "@/components/PasswordInput";
 import { categoryLabels } from "@/lib/labels";
 import { fetchAllRows, fetchStudentsFor } from "@/lib/students";
 
@@ -179,6 +181,7 @@ export default function DisciplinePage() {
   // Clear strikes modal
   const [clearModalOpen, setClearModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [clearPassword, setClearPassword] = useState("");
   const [clearConfirmed, setClearConfirmed] = useState(false);
   const [clearError, setClearError] = useState("");
@@ -775,6 +778,27 @@ export default function DisciplinePage() {
             <div className="flex items-center gap-2 flex-wrap">
               {isSuperuser(user) && (
                 <button
+                  onClick={() => setUploadModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-accent bg-accent/10 border border-accent/25 hover:bg-accent/20 px-3.5 py-2 rounded-lg shadow-sm transition-all"
+                >
+                  <svg
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  Upload Student Details
+                </button>
+              )}
+              {isSuperuser(user) && (
+                <button
                   onClick={() => setReportModalOpen(true)}
                   className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-accent bg-accent/10 border border-accent/25 hover:bg-accent/20 px-3.5 py-2 rounded-lg shadow-sm transition-all"
                 >
@@ -1199,6 +1223,15 @@ export default function DisciplinePage() {
         onVerified={handleDeleteRecord}
       />
 
+      {/* Upload students modal (superuser only) */}
+      {isSuperuser(user) && (
+        <UploadStudentsModal
+          isOpen={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+          onUploaded={fetchData}
+        />
+      )}
+
       {/* Generate report modal (superuser only) */}
       {isSuperuser(user) && (
         <GenerateReportModal
@@ -1223,14 +1256,13 @@ export default function DisciplinePage() {
             <label htmlFor="clear-password" className="block text-sm font-medium text-slate-700 mb-1">
               Enter your password to confirm
             </label>
-            <input
+            <PasswordInput
               id="clear-password"
-              type="password"
               value={clearPassword}
               onChange={(e) => setClearPassword(e.target.value)}
               placeholder="Your password"
               autoFocus
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-red-400 focus:bg-white"
+              className="bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-red-400 focus:bg-white"
             />
           </div>
           <label className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">

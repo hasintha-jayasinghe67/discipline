@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import Modal from "./Modal";
+import PasswordInput from "./PasswordInput";
 
 interface ConfirmPasswordModalProps {
   isOpen: boolean;
@@ -87,9 +88,8 @@ export default function ConfirmPasswordModal({
           >
             Enter your password to confirm
           </label>
-          <input
+          <PasswordInput
             id="confirm-password"
-            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Your password"
@@ -100,7 +100,7 @@ export default function ConfirmPasswordModal({
                 handleConfirm();
               }
             }}
-            className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-red-400 focus:bg-white"
+            className="bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-red-400 focus:bg-white"
           />
         </div>
         {error && (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function AuthenticatePage() {
   const [username, setUsername] = useState("");
@@ -71,9 +72,8 @@ export default function AuthenticatePage() {
             <label htmlFor="password" className="block text-[13px] font-medium text-label-secondary mb-1.5">
               Password
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
