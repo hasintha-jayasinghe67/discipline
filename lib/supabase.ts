@@ -6,7 +6,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
     "Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL and " +
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be set in .env.local"
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be set.\n" +
+      "  - Local dev: add them to .env.local\n" +
+      "  - Vercel: add them under Project → Settings → Environment Variables " +
+      "(Production, and Preview/Development if needed), then redeploy."
   );
 }
 
