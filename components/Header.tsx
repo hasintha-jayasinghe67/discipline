@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/theme";
 import UploadStudentsModal from "@/components/UploadStudentsModal";
+import ChangePasswordModal from "@/components/ChangePasswordModal";
 
 export default () => {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ export default () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [changePwdOpen, setChangePwdOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -149,8 +151,8 @@ export default () => {
     };
   }, [menuOpen, userMenuOpen]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/authenticate");
   };
 
@@ -367,6 +369,31 @@ export default () => {
 
                     <button
                       role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        setChangePwdOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-label hover:bg-fill rounded-lg transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                        />
+                      </svg>
+                      Change password
+                    </button>
+
+                    <button
+                      role="menuitem"
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-destructive hover:text-destructive-hover hover:bg-destructive/10 rounded-lg transition-colors"
                     >
@@ -463,6 +490,29 @@ export default () => {
                 {theme === "dark" ? "Dark mode" : "Light mode"}
               </button>
               <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  setChangePwdOpen(true);
+                }}
+                className="inline-flex items-center gap-2.5 text-label text-sm font-medium px-4 py-2 rounded-lg hover:bg-fill transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                  />
+                </svg>
+                Change password
+              </button>
+              <button
                 onClick={handleLogout}
                 className="inline-flex items-center gap-2.5 text-destructive hover:text-destructive-hover text-sm font-semibold px-4 py-2 rounded-lg hover:bg-destructive/10 transition-colors"
               >
@@ -537,6 +587,12 @@ export default () => {
           onClose={() => setUploadModalOpen(false)}
         />
       )}
+
+      {/* Change password modal (all authenticated users) */}
+      <ChangePasswordModal
+        isOpen={changePwdOpen}
+        onClose={() => setChangePwdOpen(false)}
+      />
     </>
   );
 };

@@ -1,7 +1,18 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = "https://kjpvfhcbnehcmyxzpurk.supabase.co";
-const supabaseAnonKey =
-  "sb_publishable_tLKA5vcSiHhwOuALGzFMgg_A1qyLJ3-";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL and " +
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be set in .env.local"
+  );
+}
+
+/**
+ * Browser client used by all client components. Sessions are persisted in
+ * cookies (via @supabase/ssr), so the access token is attached to every
+ * request automatically when logged in and readable by proxy.ts / server code.
+ */
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);

@@ -18,8 +18,8 @@ interface ConfirmPasswordModalProps {
 
 /**
  * Destructive-action confirmation modal: requires the logged-in user to
- * re-enter their password (verified against the users table) before the
- * action in `onVerified` runs — the same flow as the "Clear Strikes" action.
+ * re-enter their password (verified via a real Supabase Auth sign-in) before
+ * the action in `onVerified` runs — the same flow as the "Clear Strikes" action.
  */
 export default function ConfirmPasswordModal({
   isOpen,
@@ -48,19 +48,12 @@ export default function ConfirmPasswordModal({
     setBusy(true);
     setError("");
     try {
-      // Verify the user's password against their account
-      const { data, error: fetchError } = await supabase
-        .from("users")
-        .select("password")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (fetchError || !data) {
-        setError("Could not verify your account. Please try again.");
-        return;
-      }
-      const bcryptjs = await import("bcryptjs");
-      const match = bcryptjs.compareSync(password, data.password);
-      if (!match) {
+      // Verify by attempting a real sign-in with the entered password.
+      const { error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password,
+      });
+      if (error) {
         setError("Incorrect password. Action aborted.");
         return;
       }

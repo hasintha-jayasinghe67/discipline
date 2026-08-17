@@ -2,10 +2,16 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
+import { mapUsernameToEmail } from "@/lib/emailMap";
 
 export interface UserInfo {
+  /** auth.users.id (uuid) — the Supabase Auth account id */
+  authId: string;
+  /** users.id (BIGINT) — the app-level user row id */
   id: number;
   username: string;
+  /** mapped auth email (username@prefects.local), used for re-auth checks */
+  email: string;
   role: "superuser" | "admin" | "view-only";
 }
 
@@ -23,14 +29,14 @@ interface AuthContextType {
   authenticated: boolean;
   user: UserInfo | null;
   login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   authenticated: false,
   user: null,
   login: async () => false,
-  logout: () => {},
+  logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -38,81 +44,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate auth state from localStorage on mount, then re-verify the
-  // user's role against the DB so role changes / the superuser migration
-  // take effect without a manual re-login.
-  useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as UserInfo;
-        setUser(parsed);
-        setAuthenticated(true);
-        // Re-verify: fetch the freshest role for this user id.
-        (async () => {
-          try {
-            const { data } = await supabase
-              .from("users")
-              .select("username, role")
-              .eq("id", parsed.id)
-              .maybeSingle();
-            if (data && data.username === parsed.username) {
-              const fresh: UserInfo = {
-                ...parsed,
-                role: data.role as Role,
-              };
-              setUser(fresh);
-              localStorage.setItem("user", JSON.stringify(fresh));
-            } else {
-              // Account was deleted or renamed — log out.
-              setAuthenticated(false);
-              setUser(null);
-              localStorage.removeItem("user");
-            }
-          } catch {
-            // Offline / query failed — keep the cached session as-is.
-          }
-        })();
-      } catch {
-        // Corrupted localStorage entry — ignore
-      }
+  // Look up the app-level user (id/username/email/role) for an authenticated
+  // Supabase Auth account. The role ALWAYS comes from the users table, so
+  // stale or forged client-side state can never grant extra privileges.
+  const resolveUser = async (authId: string): Promise<UserInfo | null> => {
+    const { data } = await supabase
+      .from("users")
+      .select("id, username, email, role")
+      .eq("auth_id", authId)
+      .maybeSingle();
+    if (data) {
+      const resolved: UserInfo = {
+        authId,
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        role: data.role as Role,
+      };
+      setUser(resolved);
+      setAuthenticated(true);
+      return resolved;
     }
-    setHydrated(true);
+    // Authenticated with Supabase Auth but no users row (account deleted /
+    // not yet migrated) — sign out rather than leave a half-authenticated app.
+    await supabase.auth.signOut();
+    setUser(null);
+    setAuthenticated(false);
+    return null;
+  };
+
+  useEffect(() => {
+    // One-time cleanup of the legacy localStorage session key.
+    try {
+      localStorage.removeItem("user");
+    } catch {
+      // ignore
+    }
+
+    let active = true;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        void resolveUser(session.user.id);
+      } else {
+        setUser(null);
+        setAuthenticated(false);
+      }
+    });
+
+    (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (active && session?.user) {
+        await resolveUser(session.user.id);
+      }
+      if (active) setHydrated(true);
+    })();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // 1. Try Supabase users table
-    const { data, error } = await supabase
-      .from("users")
-      .select("id, username, password, role")
-      .eq("username", username)
-      .maybeSingle();
-
-    if (data && !error && data.username) {
-      // Use bcryptjs (loaded asynchronously and cached)
-      const bcryptjs = await import("bcryptjs");
-      const match = bcryptjs.compareSync(password, data.password);
-      if (match) {
-        const loggedInUser: UserInfo = {
-          id: data.id,
-          username: data.username,
-          role: data.role as Role,
-        };
-        setUser(loggedInUser);
-        setAuthenticated(true);
-        localStorage.setItem("user", JSON.stringify(loggedInUser));
-        return true;
-      }
-      return false; // Password mismatch
-    }
-
-    return false;
+    const email = mapUsernameToEmail(username);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error || !data.session) return false;
+    // Wait for the users-row lookup so auth state is set before returning.
+    await resolveUser(data.session.user.id);
+    return true;
   };
 
-  const logout = () => {
-    setAuthenticated(false);
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem("user");
+    setAuthenticated(false);
   };
 
   return (

@@ -226,17 +226,12 @@ export default function UploadStudentsModal({
     setUploading(true);
     setUploadError("");
     try {
-      // 0) Verify the user's password against their account.
-      const { data, error } = await supabase
-        .from("users")
-        .select("password")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error || !data) {
-        throw new Error("Could not verify your account. Please try again.");
-      }
-      const bcryptjs = await import("bcryptjs");
-      if (!bcryptjs.compareSync(password, data.password)) {
+      // 0) Verify the user's password via a real Supabase Auth sign-in.
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password,
+      });
+      if (verifyError) {
         throw new Error("Incorrect password. Action aborted.");
       }
 

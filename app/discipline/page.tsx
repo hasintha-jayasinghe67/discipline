@@ -295,19 +295,12 @@ export default function DisciplinePage() {
     setClearing(true);
     setClearError("");
     try {
-      // Verify the admin's password against their account
-      const { data, error } = await supabase
-        .from("users")
-        .select("password")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error || !data) {
-        setClearError("Could not verify your account. Please try again.");
-        return;
-      }
-      const bcryptjs = await import("bcryptjs");
-      const match = bcryptjs.compareSync(clearPassword, data.password);
-      if (!match) {
+      // Verify the user's password via a real Supabase Auth sign-in.
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: clearPassword,
+      });
+      if (verifyError) {
         setClearError("Incorrect password. Action aborted.");
         return;
       }

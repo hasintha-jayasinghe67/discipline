@@ -6,12 +6,33 @@ import { supabase } from "@/lib/supabase";
 import { useAuth, isAdminOrAbove, isSuperuser, type Role } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
+import PasswordInput from "@/components/PasswordInput";
 
 interface DbUser {
   id: number;
   username: string;
   role: Role;
   created_at: string;
+}
+
+/** Small fetch helper that surfaces the server route's JSON error message. */
+async function apiRequest(
+  url: string,
+  options: RequestInit
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { ok: false, error: data.error || "Request failed" };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 export default function UsersPage() {
@@ -48,8 +69,8 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    // Never select the password column, and keep superusers out of the
-    // payload entirely when the viewer is an admin (not just hidden in the UI).
+    // Keep superusers out of the payload entirely when the viewer is an
+    // admin (not just hidden in the UI).
     let query = supabase.from("users").select("id, username, role, created_at");
     if (!isSuperuser(currentUser)) {
       query = query.neq("role", "superuser");
@@ -69,15 +90,16 @@ export default function UsersPage() {
     if (!newUsername.trim() || !newPassword.trim()) return;
     setAdding(true);
     try {
-      const bcryptjs = await import("bcryptjs");
-      const hash = bcryptjs.hashSync(newPassword, 10);
-      const { error } = await supabase.from("users").insert({
-        username: newUsername.trim(),
-        password: hash,
-        role: newRole,
+      const { ok, error } = await apiRequest("/api/users", {
+        method: "POST",
+        body: JSON.stringify({
+          username: newUsername.trim(),
+          password: newPassword,
+          role: newRole,
+        }),
       });
-      if (error) {
-        alert(error.message.includes("duplicate") ? "Username already exists" : error.message);
+      if (!ok) {
+        alert(error || "Failed to add user");
         return;
       }
       setNewUsername("");
@@ -116,17 +138,17 @@ export default function UsersPage() {
     }
     setSavingEdit(true);
     try {
-      const update: Partial<{ username: string; password: string; role: string }> = {
-        username: editUsername.trim(),
-        role: editRole,
-      };
+      // Username is immutable after creation — only role and password change.
+      const payload: { role: string; password?: string } = { role: editRole };
       if (editPassword.trim()) {
-        const bcryptjs = await import("bcryptjs");
-        update.password = bcryptjs.hashSync(editPassword, 10);
+        payload.password = editPassword;
       }
-      const { error } = await supabase.from("users").update(update).eq("id", editUser.id);
-      if (error) {
-        alert(error.message.includes("duplicate") ? "Username already exists" : error.message);
+      const { ok, error } = await apiRequest(`/api/users/${editUser.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+      if (!ok) {
+        alert(error || "Failed to update user");
         return;
       }
       setEditUser(null);
@@ -156,9 +178,11 @@ export default function UsersPage() {
     }
     if (!confirm(`Are you sure you want to delete user "${targetUser.username}"?`)) return;
 
-    const { error } = await supabase.from("users").delete().eq("id", targetUser.id);
-    if (error) {
-      alert("Failed to delete user: " + error.message);
+    const { ok, error } = await apiRequest(`/api/users/${targetUser.id}`, {
+      method: "DELETE",
+    });
+    if (!ok) {
+      alert(error || "Failed to delete user");
       return;
     }
     await fetchUsers();
@@ -224,13 +248,12 @@ export default function UsersPage() {
                 <label htmlFor="new-password" className="block text-xs font-medium text-slate-600 mb-1">
                   Password
                 </label>
-                <input
+                <PasswordInput
                   id="new-password"
-                  type="text"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
+                  className="bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
                 />
               </div>
               <div className="w-full sm:w-32">
@@ -256,6 +279,7 @@ export default function UsersPage() {
                 {adding ? "Adding..." : "Add User"}
               </button>
             </div>
+            <p className="text-[11px] text-slate-400 mt-2">Min 6 characters.</p>
           </div>
           )}
 
@@ -352,21 +376,21 @@ export default function UsersPage() {
               id="edit-username"
               type="text"
               value={editUsername}
-              onChange={(e) => setEditUsername(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 focus:border-accent focus:bg-white"
+              readOnly
+              className="w-full bg-gray-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-400 cursor-not-allowed"
             />
+            <p className="text-xs text-slate-400 mt-1">Usernames cannot be changed after creation.</p>
           </div>
           <div>
             <label htmlFor="edit-password" className="block text-sm font-medium text-slate-700 mb-1">
               New password <span className="text-slate-400 font-normal">(leave blank to keep current)</span>
             </label>
-            <input
+            <PasswordInput
               id="edit-password"
-              type="text"
               value={editPassword}
               onChange={(e) => setEditPassword(e.target.value)}
               placeholder="Leave blank to keep current"
-              className="w-full bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
+              className="bg-slate-50 border border-slate-200/70 rounded-xl px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:border-accent focus:bg-white"
             />
           </div>
           <div>
