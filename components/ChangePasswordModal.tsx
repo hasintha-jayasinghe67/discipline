@@ -47,8 +47,8 @@ export default function ChangePasswordModal({
       setError("New passwords do not match.");
       return;
     }
-    if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters.");
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters.");
       return;
     }
     setBusy(true);
@@ -118,7 +118,7 @@ export default function ChangePasswordModal({
             id="change-new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="At least 6 characters"
+            placeholder="At least 8 characters"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();

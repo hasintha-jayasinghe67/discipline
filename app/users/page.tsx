@@ -279,7 +279,7 @@ export default function UsersPage() {
                 {adding ? "Adding..." : "Add User"}
               </button>
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">Min 6 characters.</p>
+            <p className="text-[11px] text-slate-400 mt-2">Min 8 characters.</p>
           </div>
           )}
 

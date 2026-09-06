@@ -3,6 +3,7 @@ import {
   createSupabaseServerClient,
   createSupabaseAdminClient,
 } from "@/lib/supabaseServer";
+import { validatePassword } from "@/lib/passwordPolicy";
 
 const ROLES = ["superuser", "admin", "view-only"] as const;
 
@@ -89,7 +90,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (!ROLES.includes(body.role as (typeof ROLES)[number])) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
-    if (targetId === callerId && body.role !== target.role) {
+    // Self-demotion lock: a superuser can never change their own role
+    // (prevents removing the last superuser by demoting themselves).
+    if (targetId === callerId) {
       return NextResponse.json(
         { error: "You cannot change your own role." },
         { status: 400 }
@@ -121,6 +124,11 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   if (body.password !== undefined && body.password !== "") {
+    // Enforce the password policy server-side — never trust the client.
+    const passwordError = validatePassword(body.password);
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
     const { error: pwdError } = await supabaseAdmin.auth.admin.updateUserById(
       target.auth_id,
       { password: body.password }
@@ -131,6 +139,10 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         { status: 400 }
       );
     }
+    // Force-sign-out: without this, a stolen session keeps working after the
+    // password reset. updateUserById changes the credentials but does not
+    // revoke the target's existing refresh tokens.
+    await supabaseAdmin.auth.admin.signOut(target.auth_id, "global");
   }
 
   return NextResponse.json({ ok: true });
@@ -173,7 +185,8 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   }
 
   // Deleting the auth account cascades to the users row (ON DELETE CASCADE on
-  // auth_id), but delete both explicitly for clarity.
+  // auth_id), but delete both explicitly for clarity. deleteUser also revokes
+  // the target's refresh tokens, killing any active session immediately.
   const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(
     target.auth_id
   );

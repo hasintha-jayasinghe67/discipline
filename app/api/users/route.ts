@@ -4,6 +4,7 @@ import {
   createSupabaseAdminClient,
 } from "@/lib/supabaseServer";
 import { isValidUsername, mapUsernameToEmail } from "@/lib/emailMap";
+import { validatePassword } from "@/lib/passwordPolicy";
 
 const ROLES = ["superuser", "admin", "view-only"] as const;
 
@@ -62,6 +63,11 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  // Enforce the password policy server-side — never trust the client.
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return NextResponse.json({ error: passwordError }, { status: 400 });
+  }
   if (!ROLES.includes(role as (typeof ROLES)[number])) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
@@ -116,6 +122,7 @@ export async function POST(request: Request) {
   });
   if (insertError) {
     // Roll back the auth account so a half-created user is never left behind.
+    // deleteUser removes the user AND revokes their refresh tokens.
     await supabaseAdmin.auth.admin.deleteUser(authUser!.user.id);
     return NextResponse.json(
       {
