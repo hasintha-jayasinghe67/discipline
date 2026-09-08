@@ -268,6 +268,7 @@ export default function UsersPage() {
                 >
                   <option value="superuser">Superuser</option>
                   <option value="admin">Admin</option>
+                  <option value="room">Room</option>
                   <option value="view-only">View-only</option>
                 </select>
               </div>
@@ -324,12 +325,16 @@ export default function UsersPage() {
                             ? "bg-purple-100 text-purple-800"
                             : u.role === "admin"
                             ? "bg-amber-100 text-amber-800"
+                            : u.role === "room"
+                            ? "bg-sky-100 text-sky-800"
                             : "bg-gray-100 text-slate-600"
                         }`}>
                           {u.role === "superuser"
                             ? "Superuser"
                             : u.role === "admin"
                             ? "Admin"
+                            : u.role === "room"
+                            ? "Room"
                             : "View-only"}
                         </span>
                       </td>
@@ -405,6 +410,7 @@ export default function UsersPage() {
             >
               <option value="superuser">Superuser</option>
               <option value="admin">Admin</option>
+              <option value="room">Room</option>
               <option value="view-only">View-only</option>
             </select>
           </div>

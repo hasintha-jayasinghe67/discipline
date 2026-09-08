@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
+import FinderMenu from "@/components/FinderMenu";
+import FinderMenuHost from "@/components/FinderMenuHost";
 
 export const metadata: Metadata = {
   title: "Prefects Discipline",
@@ -23,7 +25,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-full flex flex-col antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          {/* macOS Finder-style Go to page sheet, opened with the "/" key. */}
+          <FinderMenuHost />
+        </AuthProvider>
       </body>
     </html>
   );

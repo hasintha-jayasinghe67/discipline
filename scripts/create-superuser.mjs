@@ -35,8 +35,8 @@ if (!username || !password) {
   );
   process.exit(1);
 }
-if (!["superuser", "admin", "view-only"].includes(role)) {
-  console.error(`Invalid role "${role}" — expected superuser, admin or view-only.`);
+if (!["superuser", "admin", "room", "view-only"].includes(role)) {
+  console.error(`Invalid role "${role}" — expected superuser, admin, room or view-only.`);
   process.exit(1);
 }
 

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useAuth, canAccessLists } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 
 interface ListRecord {
@@ -26,7 +26,7 @@ export default function ListsOverviewPage() {
   }, [authenticated, router]);
 
   useEffect(() => {
-    if (authenticated && !isAdminOrAbove(user)) {
+    if (authenticated && !canAccessLists(user)) {
       router.push("/");
     }
   }, [authenticated, user, router]);
@@ -98,7 +98,7 @@ export default function ListsOverviewPage() {
 
   const filtersActive = searchQuery.trim() !== "" || dateFrom !== "" || dateTo !== "";
 
-  if (!authenticated || !isAdminOrAbove(user)) return null;
+  if (!authenticated || !canAccessLists(user)) return null;
 
   return (
     <>

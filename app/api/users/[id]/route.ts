@@ -5,7 +5,7 @@ import {
 } from "@/lib/supabaseServer";
 import { validatePassword } from "@/lib/passwordPolicy";
 
-const ROLES = ["superuser", "admin", "view-only"] as const;
+const ROLES = ["superuser", "admin", "room", "view-only"] as const;
 
 type RouteContext = { params: Promise<{ id: string }> };
 

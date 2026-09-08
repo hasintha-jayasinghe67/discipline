@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useAuth, canAccessLists } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import { fetchStudentsFor } from "@/lib/students";
 import {
@@ -45,7 +45,7 @@ export default function AttendanceSessionDetailPage() {
   }, [authenticated, router]);
 
   useEffect(() => {
-    if (authenticated && !isAdminOrAbove(user)) {
+    if (authenticated && !canAccessLists(user)) {
       router.push("/");
     }
   }, [authenticated, user, router]);
@@ -105,7 +105,7 @@ export default function AttendanceSessionDetailPage() {
     if (listId && sessionId) load();
   }, [listId, sessionId]);
 
-  if (!authenticated || !isAdminOrAbove(user)) return null;
+  if (!authenticated || !canAccessLists(user)) return null;
 
   if (loading) {
     return (

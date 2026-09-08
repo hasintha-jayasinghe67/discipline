@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS users (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
   role TEXT NOT NULL DEFAULT 'view-only'
-    CHECK (role IN ('superuser', 'admin', 'view-only')),
+    CHECK (role IN ('superuser', 'admin', 'room', 'view-only')),
   auth_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -249,12 +249,14 @@ CREATE POLICY "users_delete" ON users FOR DELETE
   TO authenticated
   USING (public.current_user_role() = 'superuser');
 
--- --- Data tables: any authenticated user can read; only admins and
--- --- superusers can write (matches the app's role matrix).
+-- --- Data tables: any authenticated user can read.
+-- --- Discipline writes: admin + superuser only.
+-- --- Lists + attendance writes: admin, superuser, and room.
 DO $$
 DECLARE
   t TEXT;
   pol TEXT;
+  write_roles TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY[
     'students',
@@ -268,6 +270,12 @@ BEGIN
     'list_attendance_records'
   ]
   LOOP
+    IF t IN ('lists', 'list_attendance_sessions', 'list_attendance_records') THEN
+      write_roles := '''admin'',''superuser'',''room''';
+    ELSE
+      write_roles := '''admin'',''superuser''';
+    END IF;
+
     pol := 'sel_auth_' || t;
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', pol, t);
     EXECUTE format(
@@ -278,22 +286,22 @@ BEGIN
     pol := 'ins_admin_' || t;
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', pol, t);
     EXECUTE format(
-      'CREATE POLICY %I ON %I FOR INSERT TO authenticated WITH CHECK (public.current_user_role() IN (''admin'',''superuser''))',
-      pol, t
+      'CREATE POLICY %I ON %I FOR INSERT TO authenticated WITH CHECK (public.current_user_role() IN (%s))',
+      pol, t, write_roles
     );
 
     pol := 'upd_admin_' || t;
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', pol, t);
     EXECUTE format(
-      'CREATE POLICY %I ON %I FOR UPDATE TO authenticated USING (public.current_user_role() IN (''admin'',''superuser'')) WITH CHECK (public.current_user_role() IN (''admin'',''superuser''))',
-      pol, t
+      'CREATE POLICY %I ON %I FOR UPDATE TO authenticated USING (public.current_user_role() IN (%s)) WITH CHECK (public.current_user_role() IN (%s))',
+      pol, t, write_roles, write_roles
     );
 
     pol := 'del_admin_' || t;
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I', pol, t);
     EXECUTE format(
-      'CREATE POLICY %I ON %I FOR DELETE TO authenticated USING (public.current_user_role() IN (''admin'',''superuser''))',
-      pol, t
+      'CREATE POLICY %I ON %I FOR DELETE TO authenticated USING (public.current_user_role() IN (%s))',
+      pol, t, write_roles
     );
   END LOOP;
 END $$;

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useAuth, isAdminOrAbove } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove, canAccessLists } from "@/lib/AuthContext";
 import Header from "@/components/Header";
 import Modal from "@/components/Modal";
 import { getThreshold, hasRule } from "@/lib/strikeRules";
@@ -46,7 +46,7 @@ export default function ListDetailPage() {
   }, [authenticated, router]);
 
   useEffect(() => {
-    if (authenticated && !isAdminOrAbove(user)) {
+    if (authenticated && !canAccessLists(user)) {
       router.push("/");
     }
   }, [authenticated, user, router]);
@@ -396,7 +396,7 @@ export default function ListDetailPage() {
     setSelectedIds([]);
   };
 
-  if (!authenticated || !isAdminOrAbove(user)) return null;
+  if (!authenticated || !canAccessLists(user)) return null;
 
   if (loading) {
     return (
@@ -481,16 +481,18 @@ export default function ListDetailPage() {
                 </button>
                 {students.length > 0 && (
                   <>
-                    <button
-                      onClick={toggleSelectMode}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all ${
-                        selectMode
-                          ? "bg-gray-200 hover:bg-gray-300 text-slate-700"
-                          : "bg-surface border border-hairline hover:border-accent hover:text-accent text-label"
-                      }`}
-                    >
-                      {selectMode ? "Cancel" : "Select"}
-                    </button>
+                    {isAdminOrAbove(user) && (
+                      <button
+                        onClick={toggleSelectMode}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all ${
+                          selectMode
+                            ? "bg-gray-200 hover:bg-gray-300 text-slate-700"
+                            : "bg-surface border border-hairline hover:border-accent hover:text-accent text-label"
+                        }`}
+                      >
+                        {selectMode ? "Cancel" : "Select"}
+                      </button>
+                    )}
                     <button
                       onClick={toggleAttendanceMode}
                       className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all flex items-center gap-1.5 ${

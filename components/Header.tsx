@@ -2,15 +2,18 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, isAdminOrAbove, isSuperuser } from "@/lib/AuthContext";
+import { useAuth, isAdminOrAbove, isSuperuser, canAccessLists } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/theme";
+import { useFinder } from "@/lib/finderToggle";
 import UploadStudentsModal from "@/components/UploadStudentsModal";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
 
 export default () => {
   const { user, logout } = useAuth();
+  const { enabled, toggleFinder } = useFinder();
   const router = useRouter();
   const isAdmin = isAdminOrAbove(user);
+  const canLists = canAccessLists(user);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -274,7 +277,7 @@ export default () => {
               Users
             </a>
           )}
-          {isAdmin && (
+          {canLists && (
             <a href="/lists" className={navLinkClass}>
               Lists
             </a>
@@ -394,6 +397,42 @@ export default () => {
 
                     <button
                       role="menuitem"
+                      onClick={toggleFinder}
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm font-medium text-label hover:bg-fill rounded-lg transition-colors"
+                    >
+                      <span className="inline-flex items-center gap-2.5">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                        Finder menu (/)
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${
+                          enabled ? "bg-accent" : "bg-fill"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${
+                            enabled ? "left-[18px]" : "left-0.5"
+                          }`}
+                        />
+                      </span>
+                    </button>
+
+                    <button
+                      role="menuitem"
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-destructive hover:text-destructive-hover hover:bg-destructive/10 rounded-lg transition-colors"
                     >
@@ -440,7 +479,7 @@ export default () => {
                 Users
               </a>
             )}
-            {isAdmin && (
+            {canLists && (
               <a href="/lists" onClick={() => setMenuOpen(false)} className={menuItemClass}>
                 Lists
               </a>
@@ -512,6 +551,41 @@ export default () => {
                 </svg>
                 Change password
               </button>
+              <button
+                onClick={toggleFinder}
+                className="inline-flex items-center justify-between gap-2.5 w-full text-label text-sm font-medium px-4 py-2 rounded-lg hover:bg-fill transition-colors"
+              >
+                <span className="inline-flex items-center gap-2.5">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  Finder menu (/)
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${
+                    enabled ? "bg-accent" : "bg-fill"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${
+                      enabled ? "left-[18px]" : "left-0.5"
+                    }`}
+                  />
+                </span>
+              </button>
+
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center gap-2.5 text-destructive hover:text-destructive-hover text-sm font-semibold px-4 py-2 rounded-lg hover:bg-destructive/10 transition-colors"

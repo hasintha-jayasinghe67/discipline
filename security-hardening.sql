@@ -109,18 +109,18 @@ CREATE POLICY "sel_auth_list_attendance_sessions" ON list_attendance_sessions
 DROP POLICY IF EXISTS "ins_admin_list_attendance_sessions" ON list_attendance_sessions;
 CREATE POLICY "ins_admin_list_attendance_sessions" ON list_attendance_sessions
   FOR INSERT TO authenticated
-  WITH CHECK (public.current_user_role() IN ('admin','superuser'));
+  WITH CHECK (public.current_user_role() IN ('admin','superuser','room'));
 
 DROP POLICY IF EXISTS "upd_admin_list_attendance_sessions" ON list_attendance_sessions;
 CREATE POLICY "upd_admin_list_attendance_sessions" ON list_attendance_sessions
   FOR UPDATE TO authenticated
-  USING (public.current_user_role() IN ('admin','superuser'))
-  WITH CHECK (public.current_user_role() IN ('admin','superuser'));
+  USING (public.current_user_role() IN ('admin','superuser','room'))
+  WITH CHECK (public.current_user_role() IN ('admin','superuser','room'));
 
 DROP POLICY IF EXISTS "del_admin_list_attendance_sessions" ON list_attendance_sessions;
 CREATE POLICY "del_admin_list_attendance_sessions" ON list_attendance_sessions
   FOR DELETE TO authenticated
-  USING (public.current_user_role() IN ('admin','superuser'));
+  USING (public.current_user_role() IN ('admin','superuser','room'));
 
 DROP POLICY IF EXISTS "sel_auth_list_attendance_records" ON list_attendance_records;
 CREATE POLICY "sel_auth_list_attendance_records" ON list_attendance_records
@@ -130,18 +130,18 @@ CREATE POLICY "sel_auth_list_attendance_records" ON list_attendance_records
 DROP POLICY IF EXISTS "ins_admin_list_attendance_records" ON list_attendance_records;
 CREATE POLICY "ins_admin_list_attendance_records" ON list_attendance_records
   FOR INSERT TO authenticated
-  WITH CHECK (public.current_user_role() IN ('admin','superuser'));
+  WITH CHECK (public.current_user_role() IN ('admin','superuser','room'));
 
 DROP POLICY IF EXISTS "upd_admin_list_attendance_records" ON list_attendance_records;
 CREATE POLICY "upd_admin_list_attendance_records" ON list_attendance_records
   FOR UPDATE TO authenticated
-  USING (public.current_user_role() IN ('admin','superuser'))
-  WITH CHECK (public.current_user_role() IN ('admin','superuser'));
+  USING (public.current_user_role() IN ('admin','superuser','room'))
+  WITH CHECK (public.current_user_role() IN ('admin','superuser','room'));
 
 DROP POLICY IF EXISTS "del_admin_list_attendance_records" ON list_attendance_records;
 CREATE POLICY "del_admin_list_attendance_records" ON list_attendance_records
   FOR DELETE TO authenticated
-  USING (public.current_user_role() IN ('admin','superuser'));
+  USING (public.current_user_role() IN ('admin','superuser','room'));
 
 -- ----------------------------------------------------------------------------
 -- 5. Done. Two manual follow-ups (not SQL-fixable):

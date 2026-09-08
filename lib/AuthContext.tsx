@@ -12,18 +12,25 @@ export interface UserInfo {
   username: string;
   /** mapped auth email (username@prefects.local), used for re-auth checks */
   email: string;
-  role: "superuser" | "admin" | "view-only";
+  role: "superuser" | "admin" | "room" | "view-only";
 }
 
 export type Role = UserInfo["role"];
 
-// Admins AND superusers pass the old `role === "admin"` checks.
+// Admins AND superusers — discipline writes (strikes, blackmarks, comments, etc.).
 // Superusers additionally pass `role === "superuser"` (user management).
 export const isAdminOrAbove = (user: UserInfo | null): boolean =>
   user?.role === "admin" || user?.role === "superuser";
 
 export const isSuperuser = (user: UserInfo | null): boolean =>
   user?.role === "superuser";
+
+export const isRoom = (user: UserInfo | null): boolean =>
+  user?.role === "room";
+
+// Lists + attendance: admins, superusers, and Room users.
+export const canAccessLists = (user: UserInfo | null): boolean =>
+  isAdminOrAbove(user) || isRoom(user);
 
 interface AuthContextType {
   authenticated: boolean;
